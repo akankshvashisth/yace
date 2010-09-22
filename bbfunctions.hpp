@@ -115,4 +115,29 @@ inline BB KnightAttacks(BB n)
 inline BB KnightFill(BB knights) { return KnightAttacks(knights) | knights; }
 inline BB KingFill(BB kings){ return KingAttacks(kings) | kings; }
 
+inline BB ForkTargetSquare(BB targets) 
+{
+   BB west, east, attack, forks;
+   east		= E(targets);
+   west		= W(targets);
+   attack	=  east << 16;
+   forks	= (west << 16) & attack;
+   attack	|=  west << 16;
+   forks	|= (east >> 16) & attack;
+   attack	|=  east >> 16;
+   forks	|= (west >> 16) & attack;
+   attack	|=  west >> 16;
+   east		= E(east);
+   west		= W(west);
+   forks	|= (east <<  8) & attack;
+   attack	|=  east <<  8;
+   forks	|= (west <<  8) & attack;
+   attack	|=  west <<  8;
+   forks	|= (east >>  8) & attack;
+   attack	|=  east >>  8;
+   forks	|= (west >>  8) & attack;
+   return forks;
+}
+   
+
 #endif
