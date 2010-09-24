@@ -198,11 +198,17 @@ namespace FEN
 			int f = 0;
 			int r = 0;
 			for(; f<8; ++f)
-				if(fen_File[f] == file)
+			{
+				const char fc = fen_File[f];
+				if( fc == file )
 					break;
+			}
 			for(; r<8; ++r)
-				if(fen_File[r] == rank)
+			{
+				const char rc = fen_Rank[r];
+				if( rc == rank )
 					break;
+			}
 
 			br.hasEpSquare = true;
 			br.epSquare = (r*8)+f;
@@ -263,7 +269,7 @@ namespace FEN
 		if(br.hasEpSquare)
 		{
 			std::cout << "------------EP SQUARE------------" << std::endl;
-			std::cout <<  br.epSquare << std::endl;
+			std::cout <<  tokens[EpTargetSquare] << " = " << br.epSquare << std::endl;
 		}
 		std::cout << "*********************************" << std::endl;
 
