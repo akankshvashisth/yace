@@ -1,6 +1,7 @@
 #include "bitboard.hpp"
 #include "show.hpp"
 #include "bbfunctions.hpp"
+#include "fen_parser.hpp"
 
 int main()
 {
@@ -35,5 +36,11 @@ int main()
 		Show<ShowTypes::Console>::Op(bbb);
 		Show<ShowTypes::Console>::Op("------------------");
 	}
+
+  FEN::FenParser("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+  FEN::FenParser("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1");
+  FEN::FenParser("rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2");
+  FEN::FenParser("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2");
+
 	return 0;
 }
