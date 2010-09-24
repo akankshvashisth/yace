@@ -87,6 +87,49 @@ inline BB BlackSafePawnSquares(BB wpawns, BB bpawns)
    return bPawnDblAttacks |~wPawnAnyAttacks | (bPawnOddAttacks &~wPawnDblAttacks);
 }
 
+inline BB WhitePawnRam(BB wpawns, BB bpawns) {return S(bpawns) & wpawns;}
+inline BB BlackPawnRam(BB wpawns, BB bpawns) {return N(wpawns) & bpawns;}
+
+inline BB WhiteEastPawnLever(BB wpawns, BB bpawns) { return wpawns & BlackPawnWestAttacks(bpawns); }
+inline BB WhiteWestPawnLever(BB wpawns, BB bpawns) { return wpawns & BlackPawnEastAttacks(bpawns); }
+inline BB WhiteAnyPawnLever (BB wpawns, BB bpawns) { return WhiteEastPawnLever(wpawns, bpawns) | WhiteWestPawnLever(wpawns, bpawns); }
+inline BB BlackEastPawnLever(BB wpawns, BB bpawns) { return bpawns & WhitePawnWestAttacks(wpawns); }
+inline BB BlackWestPawnLever(BB wpawns, BB bpawns) { return bpawns & WhitePawnEastAttacks(wpawns); }
+inline BB BlackAnyPawnLever (BB wpawns, BB bpawns) { return BlackEastPawnLever(wpawns, bpawns) | BlackWestPawnLever(wpawns, bpawns); }
+inline BB BlackEastPawnLever(BB whiteWestPawnLever) { return whiteWestPawnLever << 7; }
+inline BB BlackWestPawnLever(BB whiteEastPawnLever) { return whiteEastPawnLever << 9; }
+
+inline BB WhiteInnerPawnLever(BB wpawns, BB bpawns) 
+{
+   return ( WhiteEastPawnLever(wpawns, bpawns) & Constants::file_abc ) | ( WhiteWestPawnLever(wpawns, bpawns) & Constants::file_fgh );
+}
+ 
+inline BB WhiteOuterPawnLever(BB wpawns, BB bpawns) 
+{
+   return ( WhiteEastPawnLever(wpawns, bpawns) & Constants::file_efg ) | ( WhiteWestPawnLever(wpawns, bpawns) & Constants::file_bcd );
+}
+ 
+inline BB WhiteCenterPawnLever(BB wpawns, BB bpawns) 
+{
+   return ( WhiteEastPawnLever(wpawns, bpawns) & Constants::file_d ) | ( WhiteWestPawnLever(wpawns, bpawns) & Constants::file_e );
+}
+
+inline BB BlackInnerPawnLever(BB wpawns, BB bpawns) 
+{
+  return ( BlackEastPawnLever(wpawns, bpawns) & Constants::file_abc ) | ( BlackWestPawnLever(wpawns, bpawns) & Constants::file_fgh );
+}
+ 
+inline BB BlackOuterPawnLever(BB wpawns, BB bpawns) 
+{
+   return ( BlackEastPawnLever(wpawns, bpawns) & Constants::file_efg ) | ( BlackWestPawnLever(wpawns, bpawns) & Constants::file_bcd );
+}
+ 
+inline BB BlackCenterPawnLever(BB wpawns, BB bpawns) 
+{
+   return ( BlackEastPawnLever(wpawns, bpawns) & Constants::file_d ) | ( BlackWestPawnLever(wpawns, bpawns) & Constants::file_e );
+}
+
+
 inline BB KingAttacks( BB k )
 { 
   //return N(k)|E(k)|W(k)|S(k)|NE(k)|NW(k)|SE(k)|SW(k); 

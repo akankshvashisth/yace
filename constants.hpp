@@ -55,6 +55,11 @@ namespace Constants
   static const ui64 not_file_a_or_b   = ~(file_a|file_b);
   static const ui64 not_file_g_or_h   = ~(file_g|file_h);
 
+  static const ui64 file_abc          = 0x0707070707070707;
+  static const ui64 file_fgh          = 0xE0E0E0E0E0E0E0E0;
+  static const ui64 file_bcd          = 0x0E0E0E0E0E0E0E0E;
+  static const ui64 file_efg          = 0x7070707070707070;
+
   static const ui64 not_main_diagonal     = ~main_diagonal;
   static const ui64 not_main_antidiagonal = ~main_antidiagonal;
 }
@@ -82,5 +87,5 @@ const ui64 fileBB[] =
   Constants::file_g,
   Constants::file_h
 };
-
+ 
 #endif
