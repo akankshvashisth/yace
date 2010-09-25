@@ -272,15 +272,20 @@ const int index64_DeBruijn[64] =
  * @precondition bb != 0
  * @return index (0..63) of least significant one bit
  */
-//#pragma warning( push )
-//#pragma warning( disable : 146 ) //compiler will add 4000
+#if defined(_MSC_VER)
+#pragma warning( push )
+#pragma warning( disable : 146 ) //compiler will add 4000
+#endif
 unsigned bitScanForward_DeBruijn(ui64 bb)
 {
    static const ui64 debruijn64(0x07EDD5E59A4E28C2ULL);
    assert (bb != 0);
    return index64_DeBruijn[((bb & -bb) * debruijn64) >> 58];
 }
-//#pragma warning( pop )
+
+#if defined(_MSC_VER)
+#pragma warning( pop )
+#endif
 
 
 
