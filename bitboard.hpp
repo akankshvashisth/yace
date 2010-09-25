@@ -8,7 +8,7 @@
 #include "typedefs.hpp"
 #include "chessutils.hpp"
 #include "utility.hpp"
-
+#include <cstring>
 
 
 struct Bitboard;
@@ -40,9 +40,9 @@ public:
   {
     return IS_TRUE(SqSetBit(sq) & occupiedBB);
   }
-  ui64 PiecesAt( const PieceType::EPieceType p ) const 
-  { 
-    return pcBB[p]; 
+  ui64 PiecesAt( const PieceType::EPieceType p ) const
+  {
+    return pcBB[p];
   }
   PieceType::EPieceType PieceAtSq( const Sq::ESq sq ) const
   {
@@ -171,7 +171,7 @@ public:
     assert( PieceColor(p) != PieceColor(c) );
     assert( PieceColor(p) != Color::none );
     assert( PieceColor(c) != Color::none );
-    assert( !IsKing(c) ); 
+    assert( !IsKing(c) );
     assert( !IsPawn(c) );
     assert( PieceAtSq(from) == p );
     assert( PieceAtSq(to) == c );
@@ -198,7 +198,7 @@ public:
     assert( PieceColor(p) != PieceColor(c) );
     assert( PieceColor(p) != Color::none );
     assert( PieceColor(c) != Color::none );
-    assert( !IsKing(c) ); 
+    assert( !IsKing(c) );
     assert( PieceAtSq(from) == p );
     assert( PieceAtSq(to) == c );
   }

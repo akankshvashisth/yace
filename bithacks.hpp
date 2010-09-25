@@ -5,54 +5,55 @@
 #include "defines.hpp"
 
 //////////////////////////////////////////////////////////////////////////////
-#pragma warning( push )
-#pragma warning( disable : 102 ) //compiler will add 4000 
+//#pragma warning( push )
+//#pragma warning( disable : 102 ) //compiler will add 4000
 
 //http://williamchan.ca/portfolio/assembly/ssememcpy/source/
-void X_aligned_memcpy_sse2(void* dest, const void* src, const unsigned long size_t)
-{
-  __asm
-  {
-    mov esi, src;    //src pointer
-    mov edi, dest;   //dest pointer
+//void X_aligned_memcpy_sse2(void* dest, const void* src, const unsigned long size_t)
+//{
+//  //__asm
+//  asm
+//  {
+//    mov esi, src;    //src pointer
+//    mov edi, dest;   //dest pointer
+//
+//    mov ebx, size_t; //ebx is our counter
+//    shr ebx, 7;      //divide by 128 (8 * 128bit registers)
+//
+//loop_copy:
+//    prefetchnta 128[ESI]; //SSE2 prefetch
+//    prefetchnta 160[ESI];
+//    prefetchnta 192[ESI];
+//    prefetchnta 224[ESI];
+//
+//    movdqa xmm0, 0[ESI]; //move data from src to registers
+//    movdqa xmm1, 16[ESI];
+//    movdqa xmm2, 32[ESI];
+//    movdqa xmm3, 48[ESI];
+//    movdqa xmm4, 64[ESI];
+//    movdqa xmm5, 80[ESI];
+//    movdqa xmm6, 96[ESI];
+//    movdqa xmm7, 112[ESI];
+//
+//    movntdq 0[EDI], xmm0; //move data from registers to dest
+//    movntdq 16[EDI], xmm1;
+//    movntdq 32[EDI], xmm2;
+//    movntdq 48[EDI], xmm3;
+//    movntdq 64[EDI], xmm4;
+//    movntdq 80[EDI], xmm5;
+//    movntdq 96[EDI], xmm6;
+//    movntdq 112[EDI], xmm7;
+//
+//    add esi, 128;
+//    add edi, 128;
+//    dec ebx;
+//
+//    jnz loop_copy; //loop please
+//loop_copy_end:
+//  }
+//}
 
-    mov ebx, size_t; //ebx is our counter 
-    shr ebx, 7;      //divide by 128 (8 * 128bit registers)
-
-loop_copy:
-    prefetchnta 128[ESI]; //SSE2 prefetch
-    prefetchnta 160[ESI];
-    prefetchnta 192[ESI];
-    prefetchnta 224[ESI];
-
-    movdqa xmm0, 0[ESI]; //move data from src to registers
-    movdqa xmm1, 16[ESI];
-    movdqa xmm2, 32[ESI];
-    movdqa xmm3, 48[ESI];
-    movdqa xmm4, 64[ESI];
-    movdqa xmm5, 80[ESI];
-    movdqa xmm6, 96[ESI];
-    movdqa xmm7, 112[ESI];
-
-    movntdq 0[EDI], xmm0; //move data from registers to dest
-    movntdq 16[EDI], xmm1;
-    movntdq 32[EDI], xmm2;
-    movntdq 48[EDI], xmm3;
-    movntdq 64[EDI], xmm4;
-    movntdq 80[EDI], xmm5;
-    movntdq 96[EDI], xmm6;
-    movntdq 112[EDI], xmm7;
-
-    add esi, 128;
-    add edi, 128;
-    dec ebx;
-
-    jnz loop_copy; //loop please
-loop_copy_end:
-  }
-}
-
-#pragma warning( pop )
+//#pragma warning( pop )
 
 
 ///////////////////////////////////////////////////////////////////////////
@@ -63,7 +64,7 @@ loop_copy_end:
 unsigned popCount (ui64 x) //Pretty close to best for sparse! possibly very useful when endgame begins.
 {
   unsigned count = 0;
-  while (x) 
+  while (x)
   {
     count++;
     x &= x - 1; // reset LS1B
@@ -89,7 +90,7 @@ void initpopCountOfShorts65536()
     popCountOfShorts65536[i] = (i & 1) + popCountOfShorts65536[i / 2];
 }
 
-unsigned popCount2 (ui64 x) 
+unsigned popCount2 (ui64 x)
 {
   return popCountOf256Bytes[ x        & 0xff] +
     popCountOf256Bytes[(x >>  8) & 0xff] +
@@ -101,7 +102,7 @@ unsigned popCount2 (ui64 x)
     popCountOf256Bytes[ x >> 56];
 }
 
-unsigned popCount3 (ui64 x) 
+unsigned popCount3 (ui64 x)
 {
   return popCountOfShorts65536[ x & 0xffff] +
     popCountOfShorts65536[(x >> 16) & 0xffff] +
@@ -133,10 +134,10 @@ unsigned popCount5 (ui64 x) //better than the above one
 
 unsigned popCount6 (ui64 x)
 {
-  static const ui64 k1 = C64(0x5555555555555555);
-  static const ui64 k2 = C64(0x3333333333333333);
-  static const ui64 k4 = C64(0x0f0f0f0f0f0f0f0f);
-  static const ui64 kf = C64(0x0101010101010101);
+  static const ui64 k1 = C64(0x5555555555555555ULL);
+  static const ui64 k2 = C64(0x3333333333333333ULL);
+  static const ui64 k4 = C64(0x0f0f0f0f0f0f0f0fULL);
+  static const ui64 kf = C64(0x0101010101010101ULL);
   x =  x       - ((x >> 1)  & k1); //put count of each 2 bits into those 2 bits
   x = (x & k2) + ((x >> 2)  & k2); //put count of each 4 bits into those 4 bits
   x = (x       +  (x >> 4)) & k4 ; //put count of each 8 bits into those 8 bits
@@ -146,9 +147,9 @@ unsigned popCount6 (ui64 x)
 
 unsigned slowmul_popCount (ui64 x)
 {
-  static const ui64 k1 = C64(0x5555555555555555);
-  static const ui64 k2 = C64(0x3333333333333333);
-  static const ui64 k4 = C64(0x0f0f0f0f0f0f0f0f);
+  static const ui64 k1 = C64(0x5555555555555555ULL);
+  static const ui64 k2 = C64(0x3333333333333333ULL);
+  static const ui64 k4 = C64(0x0f0f0f0f0f0f0f0fULL);
   x =  x       - ((x >> 1)  & k1); //put count of each 2 bits into those 2 bits
   x = (x & k2) + ((x >> 2)  & k2); //put count of each 4 bits into those 4 bits
   x = (x       +  (x >> 4)) & k4 ; //put count of each 8 bits into those 8 bits
@@ -162,10 +163,10 @@ unsigned slowmul_popCount (ui64 x)
 
 // return popCount(x) + popCount(y) + popCount(z)
 int popCount7 (ui64 x, ui64 y, ui64 z) {
-  static const ui64 k1 = C64(0x5555555555555555);
-  static const ui64 k2 = C64(0x3333333333333333);
-  static const ui64 k4 = C64(0x0f0f0f0f0f0f0f0f);
-  static const ui64 kf = C64(0x0101010101010101);
+  static const ui64 k1 = C64(0x5555555555555555ULL);
+  static const ui64 k2 = C64(0x3333333333333333ULL);
+  static const ui64 k4 = C64(0x0f0f0f0f0f0f0f0fULL);
+  static const ui64 kf = C64(0x0101010101010101ULL);
   ui64 maj = ((x ^ y ) & z) | (x & y);
   ui64 odd = ((x ^ y ) ^ z);
   maj =  maj - ((maj >> 1) & k1 );
@@ -202,7 +203,7 @@ void attackCounts(ui64 t[3], const ui64 s[7]) {
 //exactly2attacks :=  ~t[2] &  t[1] & ~t[0]
 //exactly1attack  :=  ~t[2] & ~t[1] &  t[0]
 //noAttack        :=  ~t[2] & ~t[1] & ~t[0]
-// 
+//
 //atLeast4attacks :=                   t[2]
 //atLeast2attacks := atLeast4attacks | t[1]
 //atLeast1attack  := atLeast2attacks | t[0]
@@ -211,8 +212,8 @@ void attackCounts(ui64 t[3], const ui64 s[7]) {
 
 ////////////////////////////////////////////////////////////////////
 
-inline ui64 rotateLeft (ui64 x, int s) {return _rotl64(x, s);}
-inline ui64 rotateRight(ui64 x, int s) {return _rotr64(x, s);}
+inline ui64 rotateLeft (ui64 x, int s) { assert(false); return 0;} //_rotl64(x, s);}
+inline ui64 rotateRight(ui64 x, int s) { assert(false); return 0;}//_rotr64(x, s);}
 
 inline ui64 rotateLeftWithShift (ui64 x, int s) {return (x << s) | (x >> (64-s));}
 inline ui64 rotateRightWithShift(ui64 x, int s) {return (x >> s) | (x << (64-s));}
@@ -222,7 +223,7 @@ inline ui64 rotateRightWithShift(ui64 x, int s) {return (x >> s) | (x << (64-s))
 
 
 inline ui64 genShiftBranch(ui64 x, int s) {return (s > 0) ? (x << s) : (x >> -s);}
-inline ui64 genShiftBranchless(ui64 x, int s) 
+inline ui64 genShiftBranchless(ui64 x, int s)
 {
    char left  =   (char) s;
    char right = -((char)(s >> 8) & left);
@@ -238,8 +239,8 @@ inline ui64 genShiftBranchless(ui64 x, int s)
 //     ;       left if positive
 //     ;       right if negative
 //     ; rax - bitboard to shift
-//     mov   rax, x;  
-//     mov   ecx, s;  
+//     mov   rax, x;
+//     mov   ecx, s;
 //     mov   dl,  cl
 //     and   cl,  ch
 //     neg   cl
@@ -249,7 +250,7 @@ inline ui64 genShiftBranchless(ui64 x, int s)
 //  }
 //}
 
-const int index64_DeBruijn[64] = 
+const int index64_DeBruijn[64] =
 {
    63,  0, 58,  1, 59, 47, 53,  2,
    60, 39, 48, 27, 54, 33, 42,  3,
@@ -271,15 +272,15 @@ const int index64_DeBruijn[64] =
  * @precondition bb != 0
  * @return index (0..63) of least significant one bit
  */
-#pragma warning( push )
-#pragma warning( disable : 146 ) //compiler will add 4000 
-unsigned bitScanForward_DeBruijn(ui64 bb) 
+//#pragma warning( push )
+//#pragma warning( disable : 146 ) //compiler will add 4000
+unsigned bitScanForward_DeBruijn(ui64 bb)
 {
-   static const ui64 debruijn64(0x07EDD5E59A4E28C2);
+   static const ui64 debruijn64(0x07EDD5E59A4E28C2ULL);
    assert (bb != 0);
    return index64_DeBruijn[((bb & -bb) * debruijn64) >> 58];
 }
-#pragma warning( pop )
+//#pragma warning( pop )
 
 
 

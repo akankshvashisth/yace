@@ -20,13 +20,17 @@ template<>
 struct Show<ShowTypes::Console>
 {
   template<typename T>
-  static void Op( const T& t )
+  static void Op( const T& t );
+};
+
+  template<typename T>
+  void  Show<ShowTypes::Console>::Op( const T& t )
   {
     std::cout << t << std::endl;
   }
 
   template<>
-  static void Op<Bitboard>( const Bitboard& b )
+  void  Show<ShowTypes::Console>::Op<Bitboard>( const Bitboard& b )
   {
     for( int i=7; i>=0; --i )
     {
@@ -41,18 +45,17 @@ struct Show<ShowTypes::Console>
   }
 
   template<>
-  static void Op<ui64>( const ui64& b )
+  void  Show<ShowTypes::Console>::Op<ui64>( const ui64& b )
   {
     for( int i=7; i>=0; --i )
     {
       for( int j=0; j<8; ++j )
       {
-        std::cout << IsBitSet(b, i*8+j) ? 1 : 0 ;
+        std::cout << (IsBitSet(b, i*8+j) ? 1 : 0) ;
         //std::cout << Sq::SSq[i*8+j] << " ";
       }
       std::cout << std::endl;
     }
   }
-};
 
-#endif 
+#endif
