@@ -13,7 +13,7 @@ namespace FEN
 {
 	class Appender : public std::vector<std::string> {
 	public:
-		void operator() (const char* s, unsigned length) { 
+		void operator() (const char* s, unsigned length) {
 			this->push_back(std::string(s,length));
 		}
 	};
@@ -81,7 +81,7 @@ namespace FEN
 
 	inline BoardRepresentation FenParser( const std::string& fen )
 	{
-		
+
 		BoardRepresentation br;
 		std::istringstream iss(fen);
 		std::vector<std::string> tokens;
@@ -93,7 +93,7 @@ namespace FEN
 		int n=0;
 		for(int i=7; i>=0; --i)
 		{
-			for(int j=0; j<v[i].size(); ++j)
+			for(int j=0; j<(int)v[i].size(); ++j)
 			{
 				if     (v[i][j] == fen_black_king)
 				{
@@ -260,9 +260,9 @@ namespace FEN
 		std::cout << "---------IS WHITES TURN----------" << std::endl;
 		std::cout <<( br.isWhitesTurn ? "yes" : "no" )<< std::endl;
 		std::cout << "---------CASTLING RIGHTS---------" << std::endl;
-		std::cout << (br.castling[0] ? 'K' : '-' )<< ", " 
-			      << (br.castling[1] ? 'Q' : '-' )<< ", " 
-				  << (br.castling[2] ? 'k' : '-' )<< ", " 
+		std::cout << (br.castling[0] ? 'K' : '-' )<< ", "
+			      << (br.castling[1] ? 'Q' : '-' )<< ", "
+				  << (br.castling[2] ? 'k' : '-' )<< ", "
 				  << (br.castling[3] ? 'q' : '-' )<< std::endl;
 		std::cout << "----------HAS EP SQUARE----------" << std::endl;
 		std::cout << (br.hasEpSquare ? "yes" : "no") << std::endl;
