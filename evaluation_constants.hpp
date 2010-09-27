@@ -3,11 +3,23 @@
 
 namespace PieceValues
 {
-  static const int pawn    = 100;
-  static const int knight  = 300;
-  static const int bishop  = 300;
-  static const int rook    = 500;
-  static const int queen   = 900;
+  namespace MiddleGame
+  {
+    static const int pawn    = 100;
+    static const int knight  = 300;
+    static const int bishop  = 300;
+    static const int rook    = 500;
+    static const int queen   = 900;
+  }
+
+  namespace Endgame
+  {
+    static const int pawn    = 150;
+    static const int knight  = 250;
+    static const int bishop  = 350;
+    static const int rook    = 600;
+    static const int queen   = 1000;
+  }
 }
 
 namespace SquareTables //From white side!

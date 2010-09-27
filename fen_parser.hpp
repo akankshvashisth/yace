@@ -33,19 +33,19 @@ namespace FEN
 	}
 
 
-	static const char fen_clear			= '.';
-	static const char fen_white_king	= 'K';
-	static const char fen_black_king	= 'k';
+	static const char fen_clear			    = '.';
+	static const char fen_white_king	  = 'K';
+	static const char fen_black_king	  = 'k';
 	static const char fen_white_knight	= 'N';
 	static const char fen_black_knight	= 'n';
 	static const char fen_white_bishop	= 'B';
 	static const char fen_black_bishop	= 'b';
-	static const char fen_white_rook	= 'R';
-	static const char fen_black_rook	= 'r';
-	static const char fen_white_queen	= 'Q';
-	static const char fen_black_queen	= 'q';
-	static const char fen_white_pawn	= 'P';
-	static const char fen_black_pawn	= 'p';
+	static const char fen_white_rook	  = 'R';
+	static const char fen_black_rook	  = 'r';
+	static const char fen_white_queen	  = 'Q';
+	static const char fen_black_queen	  = 'q';
+	static const char fen_white_pawn	  = 'P';
+	static const char fen_black_pawn	  = 'p';
 
 	static const char fen_WhitePieceName[6] = {fen_white_pawn, fen_white_knight, fen_white_bishop, fen_white_rook, fen_white_queen, fen_white_king};
 	static const char fen_BlackPieceName[6] = {fen_black_pawn, fen_black_knight, fen_black_bishop, fen_black_rook, fen_black_queen, fen_black_king};
@@ -77,7 +77,7 @@ namespace FEN
 		unsigned int fullMoveCounter;
 	};
 
-	enum FenTokens{ PiecePlacement, SideToMove, CastlingAbility, EpTargetSquare, HalfMoveClock, FullMoveCounter } ;
+	enum FenTokens{ PiecePlacement, SideToMove, CastlingAbility, EpTargetSquare, HalfMoveClock, FullMoveCounter, FEN_NONE } ;
 
 	inline BoardRepresentation FenParser( const std::string& fen )
 	{
@@ -242,36 +242,6 @@ namespace FEN
 		br.isWhitesTurn = ((tokens[SideToMove] == std::string("w"))||(tokens[SideToMove] == std::string("W")));
 		br.halfMoveClock = atoi( tokens[HalfMoveClock].c_str() );
 		br.fullMoveCounter = atoi( tokens[FullMoveCounter].c_str() );
-
-		std::cout << "**************FEN****************" << std::endl;
-		std::cout << "-------------BOARD---------------" << std::endl;
-		for(int i=7; i>=0; --i)
-		{
-			for(unsigned int j=0; j<8; ++j)
-			{
-				std::cout << br.board[(i*8)+j];
-			}
-			std::cout << std::endl;
-		}
-		std::cout << "---------HALF MOVE CLOCK---------" << std::endl;
-		std::cout << br.halfMoveClock << std::endl;
-		std::cout << "--------FULL MOVE COUNTER--------" << std::endl;
-		std::cout << br.fullMoveCounter << std::endl;
-		std::cout << "---------IS WHITES TURN----------" << std::endl;
-		std::cout <<( br.isWhitesTurn ? "yes" : "no" )<< std::endl;
-		std::cout << "---------CASTLING RIGHTS---------" << std::endl;
-		std::cout << (br.castling[0] ? 'K' : '-' )<< ", "
-			      << (br.castling[1] ? 'Q' : '-' )<< ", "
-				  << (br.castling[2] ? 'k' : '-' )<< ", "
-				  << (br.castling[3] ? 'q' : '-' )<< std::endl;
-		std::cout << "----------HAS EP SQUARE----------" << std::endl;
-		std::cout << (br.hasEpSquare ? "yes" : "no") << std::endl;
-		if(br.hasEpSquare)
-		{
-			std::cout << "------------EP SQUARE------------" << std::endl;
-			std::cout <<  tokens[EpTargetSquare] << " = " << br.epSquare << std::endl;
-		}
-		std::cout << "*********************************" << std::endl;
 
 		return br;
 	}
