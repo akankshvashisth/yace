@@ -55,8 +55,8 @@ int main()
     //Show<ShowTypes::Console>::Op(b);
     Show<ShowTypes::Console>::Op(fen);
     Show<ShowTypes::Console>::Op(fenFromBoard);
-    Show<ShowTypes::Console>::Op(FEN::FenParser(fen));
-    Show<ShowTypes::Console>::Op(b);
+    //Show<ShowTypes::Console>::Op(FEN::FenParser(fen));
+    //Show<ShowTypes::Console>::Op(b);
 
     return 0;
 }

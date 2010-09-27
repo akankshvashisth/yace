@@ -17,9 +17,9 @@ inline bool IsPawn( const PieceType::EPieceType p )
   return ((p==PieceType::wpawns) || (p==PieceType::bpawns));
 }
 
-inline const int SqFile( const Sq::ESq sq ){ return sq&7; }
-inline const int SqRank( const Sq::ESq sq ){ return sq>>3; }
-inline const ui64 SqSetBit( const Sq::ESq sq ){ return ui64(1)<<sq; }
+inline int SqFile( const Sq::ESq sq ){ return sq&7; }
+inline int SqRank( const Sq::ESq sq ){ return sq>>3; }
+inline ui64 SqSetBit( const Sq::ESq sq ){ return ui64(1)<<sq; }
 
 
 #endif
