@@ -212,8 +212,8 @@ void attackCounts(ui64 t[3], const ui64 s[7]) {
 
 ////////////////////////////////////////////////////////////////////
 
-inline ui64 rotateLeft (ui64 x, int s) { assert(false); return 0;} //_rotl64(x, s);}
-inline ui64 rotateRight(ui64 x, int s) { assert(false); return 0;}//_rotr64(x, s);}
+inline ui64 rotateLeft (ui64 /*x*/, int /*s*/) { assert(false); return 0;} //_rotl64(x, s);}
+inline ui64 rotateRight(ui64 /*x*/, int /*s*/) { assert(false); return 0;}//_rotr64(x, s);}
 
 inline ui64 rotateLeftWithShift (ui64 x, int s) {return (x << s) | (x >> (64-s));}
 inline ui64 rotateRightWithShift(ui64 x, int s) {return (x >> s) | (x << (64-s));}
