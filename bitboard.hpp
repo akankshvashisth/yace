@@ -3,6 +3,7 @@
 #define __bitboard_hpp
 
 #include "constants.hpp"
+#include "evaluation_constants.hpp"
 #include "defines.hpp"
 #include "enums.hpp"
 #include "typedefs.hpp"
@@ -10,12 +11,16 @@
 #include "utility.hpp"
 #include <cstring>
 
-
 struct Bitboard;
 
 inline void CopyBitboard( Bitboard& dst, const Bitboard& src );
 inline void CopyBitboard( Bitboard* dst, const Bitboard* src );
 inline void ClearBitboard( Bitboard* b );
+
+Sq::ESq SquareFromFileRank( Files::EFiles f, Ranks::ERanks r )
+{
+  return Sq::ESq((r<<3)+f);
+}
 
 struct Bitboard
 {
@@ -23,27 +28,37 @@ public:
   BB pcBB[14];
   BB emptyBB;
   BB occupiedBB;
+	unsigned int halfMoveClock;
+	unsigned int fullMoveCounter;
+  Sq::ESq epSquare;
+  bool castling[4];     // WK, WQ, BK, BQ
+  bool isWhitesTurn;
 public:
-  Bitboard()
+  Bitboard() { ClearBitboard(this); }
+  Bitboard( const Bitboard& other ) { CopyBitboard( this, &other ); }
+
+  bool IsSqEmpty( const Sq::ESq sq ) const { return IS_TRUE(SqSetBit(sq) & emptyBB);  }
+  bool IsSqOccupied( const Sq::ESq sq ) const { return IS_TRUE(SqSetBit(sq) & occupiedBB); }
+
+  bool WhiteCanCastleKingSide() const { return castling[0]; }
+  bool BlackCanCastleKingSide() const { return castling[2]; }
+  bool WhiteCanCastleQueenSide() const { return castling[1]; }
+  bool BlackCanCastleQueenSide() const { return castling[3]; }
+
+  Sq::ESq EpSquare() const { return (epSquare); }
+  void SetEpSquare(Sq::ESq sq)
   {
-    ClearBitboard(this);
+    epSquare = sq;
   }
-  Bitboard( const Bitboard& other )
-  {
-    CopyBitboard( this, &other );
-  }
-  bool IsSqEmpty( const Sq::ESq sq )
-  {
-    return IS_TRUE(SqSetBit(sq) & emptyBB);
-  }
-  bool IsSqOccupied( const Sq::ESq sq )
-  {
-    return IS_TRUE(SqSetBit(sq) & occupiedBB);
-  }
-  ui64 PiecesAt( const PieceType::EPieceType p ) const
-  {
-    return pcBB[p];
-  }
+
+  bool IsWhitesTurn() const { return isWhitesTurn; }
+
+  unsigned HalfMoveClock() const { return halfMoveClock; }
+  unsigned FullMoveCounter() const { return fullMoveCounter; }
+  void IncrementHalfMoveClock() { ++halfMoveClock; }
+  void IncrementFullMoveCounter() { ++fullMoveCounter; }
+
+  ui64 PiecesAt( const PieceType::EPieceType p ) const { return pcBB[p]; }
   PieceType::EPieceType PieceAtSq( const Sq::ESq sq ) const
   {
     const BB square = SqSetBit(sq);
@@ -211,24 +226,13 @@ public:
 };
 
 
-inline void CopyBitboard( Bitboard& dst, const Bitboard& src )
-{
-  //X_aligned_memcpy_sse2( &dst, &src, sizeof(Bitboard) );
-  memcpy( &dst, &src, sizeof(Bitboard) );
-}
+//Try using X_aligned_memcpy_sse2( &dst, &src, sizeof(Bitboard) );
+inline void CopyBitboard( Bitboard& dst, const Bitboard& src ){ memcpy( &dst, &src, sizeof(Bitboard) ); }
 
-inline void CopyBitboard( Bitboard* dst, const Bitboard* src )
-{
-  //X_aligned_memcpy_sse2( dst, src, sizeof(Bitboard) );
-  memcpy( dst, src, sizeof(Bitboard) );
-}
+//Try using X_aligned_memcpy_sse2( dst, src, sizeof(Bitboard) );
+inline void CopyBitboard( Bitboard* dst, const Bitboard* src ){ memcpy( dst, src, sizeof(Bitboard) ); }
 
-inline void ClearBitboard( Bitboard* b )
-{
-  memset( b, 0, sizeof(Bitboard) );
-}
-
-
+inline void ClearBitboard( Bitboard* b ){ memset( b, 0, sizeof(Bitboard) ); }
 
 #endif
 
