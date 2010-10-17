@@ -72,7 +72,7 @@ int main()
 
 	//Show<ShowTypes::Console>::Op( QueenAttacks((Constants::file_d|Constants::rank_5), Sq::g2) );
 
-	const std::string fen("rnbqkbnr/8/pppppppp/8/8/PPPPPPPP/8/RNBQKBNR w KQkq - 0 1");
+	const std::string fen("k7/8/8/3Pp3/8/8/8/7K w - e6 0 2");
     Bitboard b;
     //Show<ShowTypes::Console>::Op(b);
     b = BitboardFromFen(fen);
