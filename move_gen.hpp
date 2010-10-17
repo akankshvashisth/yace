@@ -7,18 +7,13 @@
 #include "piece_attacks.hpp"
 #include "lookup.hpp"
 #include "enums.hpp"
+#include "move.hpp"
 
-#include "show.hpp"
+//#include "show.hpp"
 
 #include <vector>
 
-struct move
-{
-	PieceType::EPieceType piece;
-	Sq::ESq from, to;
-	bool isEp;
-	bool isCapture;
-};
+
 
 std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 {
@@ -115,6 +110,7 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 					captures &= (~lookup::single_bit_set[to]);
 					m.to = to;
 					m.isCapture = true;
+					m.captured = bb.PieceAtSq(to);
 					m.isEp = (to == epSq);
 					mvs.push_back(m);
 				}
@@ -150,6 +146,7 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 					m.to = to;
 					m.isEp = (to == epSq);
 					m.isCapture = true;
+					m.captured = bb.PieceAtSq(to);
 					mvs.push_back(m);
 				}
 			}
@@ -175,6 +172,7 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 			captures &= (~lookup::single_bit_set[to]);
 			m.to = to;
 			m.isCapture = true;
+			m.captured = bb.PieceAtSq(to);
 			mvs.push_back(m);
 		}
 		for(unsigned j=0; j<norcnt; ++j)
@@ -204,6 +202,7 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 			captures &= (~lookup::single_bit_set[to]);
 			m.to = to;
 			m.isCapture = true;
+			m.captured = bb.PieceAtSq(to);
 			mvs.push_back(m);
 		}
 		for(unsigned j=0; j<norcnt; ++j)
@@ -233,6 +232,7 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 			captures &= (~lookup::single_bit_set[to]);
 			m.to = to;
 			m.isCapture = true;
+			m.captured = bb.PieceAtSq(to);
 			mvs.push_back(m);
 		}
 		for(unsigned j=0; j<norcnt; ++j)
@@ -263,6 +263,7 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 			captures &= (~lookup::single_bit_set[to]);
 			m.to = to;
 			m.isCapture = true;
+			m.captured = bb.PieceAtSq(to);
 			mvs.push_back(m);
 		}
 		for(unsigned j=0; j<norcnt; ++j)
@@ -292,6 +293,7 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 			captures &= (~lookup::single_bit_set[to]);
 			m.to = to;
 			m.isCapture = true;
+			m.captured = bb.PieceAtSq(to);
 			mvs.push_back(m);
 		}
 		for(unsigned j=0; j<norcnt; ++j)

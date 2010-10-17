@@ -6,7 +6,7 @@
 #include "chessutils.hpp"
 #include "bbfunctions.hpp"
 #include "constants.hpp"
-#include "show.hpp"
+//#include "show.hpp"
 
 ui64 rankMask(int sq) {return  ui64(0xff) << (sq & 56);}
  
@@ -44,10 +44,8 @@ namespace lookup
 	static ui64 rook_moves[64];
 	static ui64 queen_moves[64];
 
-	static ui64 white_pawn_moves[64];
-	static ui64 white_pawn_attacks[64];
-	static ui64 black_pawn_moves[64];
-	static ui64 black_pawn_attacks[64];
+	//static ui64 pawn_moves[2][64];
+	static ui64 pawn_attacks[2][64];
 
 	static ui64 direction_attacks[8][64];
 }
@@ -57,6 +55,18 @@ void init_arr_single_bit_set()
 {
 	for(unsigned i=0; i<64; ++i)
 		lookup::single_bit_set[i] = ui64(1)<<i;
+}
+
+void init_arr_pawn_attacks()
+{
+	for(unsigned i=0; i<64; ++i)
+	{
+
+		//lookup::pawn_moves[0][i] = 
+		//lookup::pawn_moves[1][i] = 
+		lookup::pawn_attacks[0][i] = WhitePawnAnyAttacks(lookup::single_bit_set[i]);
+		lookup::pawn_attacks[1][i] = BlackPawnAnyAttacks(lookup::single_bit_set[i]);
+	}
 }
 
 void init_arr_king_moves()
@@ -167,6 +177,7 @@ void init_all()
 	init_arr_bishop_moves();
 	init_arr_queen_moves();
 	init_arr_direction_attacks();
+	init_arr_pawn_attacks();
 }
 
 

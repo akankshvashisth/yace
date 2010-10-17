@@ -22,6 +22,16 @@ namespace PieceType
     all, 
     none
   };
+
+  enum EDiff
+  {
+	  pawns_diff = 1,
+	  knights_diff = 2,
+	  bishops_diff = 3,
+	  rooks_diff = 4,
+	  queens_diff = 5,
+	  king_diff = 6
+  };
 }
 
 
