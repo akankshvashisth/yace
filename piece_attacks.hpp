@@ -3,6 +3,7 @@
 
 #include "bbfunctions.hpp"
 #include "bithacks.hpp"
+#include "bitfunctions.hpp"
 #include "lookup.hpp"
 #include <intrin.h>
 
@@ -38,9 +39,9 @@ ui64 getPositiveRayAttacks(ui64 occupied, Dir::EDir dir8, Sq::ESq square)
 
 ui64 getNegativeRayAttacks(ui64 occupied, Dir::EDir dir8, Sq::ESq square) 
 {
-	Show<ShowTypes::Console>::Op(occupied);
+//	Show<ShowTypes::Console>::Op(occupied);
    ui64 attacks = lookup::direction_attacks[dir8][square];
-   Show<ShowTypes::Console>::Op(attacks);
+//   Show<ShowTypes::Console>::Op(attacks);
    ui64 blocker = attacks & occupied;
    if ( blocker ) {
       square = (Sq::ESq)BitScanReverse(blocker);
@@ -74,20 +75,20 @@ inline ui64 BishopAttacks(ui64 occupied, Sq::ESq sq)
 inline ui64 RookAttacks(ui64 occupied, Sq::ESq sq)
 {
 	ui64 attacks = Constants::clear;
-	Show<ShowTypes::Console>::Op(attacks);
-	Show<ShowTypes::Console>::Op("--------");
+//	Show<ShowTypes::Console>::Op(attacks);
+//	Show<ShowTypes::Console>::Op("--------");
 	attacks |= GetFrontRayAttacks( occupied, Dir::N, sq );
-	Show<ShowTypes::Console>::Op(attacks);
-	Show<ShowTypes::Console>::Op("--------");
+//	Show<ShowTypes::Console>::Op(attacks);
+//	Show<ShowTypes::Console>::Op("--------");
 	attacks |= GetFrontRayAttacks( occupied, Dir::E, sq );
-	Show<ShowTypes::Console>::Op(attacks);
-	Show<ShowTypes::Console>::Op("--------");
+//	Show<ShowTypes::Console>::Op(attacks);
+//	Show<ShowTypes::Console>::Op("--------");
 	attacks |= GetBackRayAttacks( occupied, Dir::S, sq );
-	Show<ShowTypes::Console>::Op(attacks);
-	Show<ShowTypes::Console>::Op("--------");
+	//Show<ShowTypes::Console>::Op(attacks);
+	//Show<ShowTypes::Console>::Op("--------");
 	attacks |= GetBackRayAttacks( occupied, Dir::W, sq );
-	Show<ShowTypes::Console>::Op(attacks);
-	Show<ShowTypes::Console>::Op("--------");
+	//Show<ShowTypes::Console>::Op(attacks);
+	//Show<ShowTypes::Console>::Op("--------");
 	return attacks;
 }
 

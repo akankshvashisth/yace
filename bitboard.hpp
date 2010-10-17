@@ -9,6 +9,11 @@
 #include "typedefs.hpp"
 #include "chessutils.hpp"
 #include "utility.hpp"
+#include "lookup.hpp"
+#include "piece_attacks.hpp"
+#include "bbfunctions.hpp"
+#include "move.hpp"
+
 #include <cstring>
 
 struct Bitboard;
@@ -39,6 +44,92 @@ public:
 
   bool IsSqEmpty( const Sq::ESq sq ) const { return IS_TRUE(SqSetBit(sq) & emptyBB);  }
   bool IsSqOccupied( const Sq::ESq sq ) const { return IS_TRUE(SqSetBit(sq) & occupiedBB); }
+
+  BB KingAttacks()
+  {
+	  ui64 opPawns, opKnights, opRQ, opBQ;
+
+	  PieceType::EPieceType sideToMove = isWhitesTurn? PieceType::white : PieceType::black;
+	  PieceType::EPieceType opponent   = isWhitesTurn? PieceType::black : PieceType::white;
+
+	  const Sq::ESq sqOfKing =  (Sq::ESq)BitScanForward(pcBB[sideToMove+PieceType::king_diff]);
+
+	  opPawns     = pcBB[opponent+PieceType::pawns_diff];
+	  opKnights   = pcBB[opponent+PieceType::knights_diff];
+	  opRQ = opBQ = pcBB[opponent+PieceType::queens_diff];
+	  opRQ       |= pcBB[opponent+PieceType::rooks_diff];
+	  opBQ       |= pcBB[opponent+PieceType::bishops_diff];
+	  return (lookup::pawn_attacks[sideToMove/PieceType::black][sqOfKing] & opPawns) | 
+		  	 (lookup::knight_moves[sqOfKing] & opKnights)							 | 
+		  	 (BishopAttacks (pcBB[PieceType::all], sqOfKing) & opBQ)				 | 
+		  	 (RookAttacks   (pcBB[PieceType::all], sqOfKing) & opRQ);
+  }
+
+  bool IsKingInCheck()
+  {
+	  return KingAttacks() != ui64(0);
+  }
+
+  bool IsLegal()
+  {
+	  ui64 pawns, knights, RQ, BQ;
+
+	  PieceType::EPieceType sideToMove = isWhitesTurn? PieceType::white : PieceType::black;
+	  PieceType::EPieceType opponent   = isWhitesTurn? PieceType::black : PieceType::white;
+
+	  const Sq::ESq sqOfKing =  (Sq::ESq)BitScanForward(pcBB[opponent+PieceType::king_diff]);
+
+	  pawns     = pcBB[sideToMove+PieceType::pawns_diff];
+	  knights   = pcBB[sideToMove+PieceType::knights_diff];
+	  RQ = BQ   = pcBB[sideToMove+PieceType::queens_diff];
+	  RQ       |= pcBB[sideToMove+PieceType::rooks_diff];
+	  BQ       |= pcBB[sideToMove+PieceType::bishops_diff];
+	  return ((lookup::pawn_attacks[opponent/PieceType::black][sqOfKing] & pawns)   | 
+		  	 (lookup::knight_moves[sqOfKing] & knights)						        | 
+		  	 (BishopAttacks (pcBB[PieceType::all], sqOfKing) & BQ)				    | 
+			 (RookAttacks   (pcBB[PieceType::all], sqOfKing) & RQ)) == Constants::clear;
+  }
+
+  bool MakeMove( move m )
+  {
+	  epSquare = Sq::none;
+	  if(m.isEp)
+	  {
+		  MakeNormalMove_NoUpdate(m.piece, m.from, m.to);
+		  if(IsWhitesTurn())
+		  {
+			  pcBB[PieceType::bpawns] &= (~(S(lookup::single_bit_set[m.to])));
+		  }
+		  else
+		  {
+			  pcBB[PieceType::wpawns] &= (~(N(lookup::single_bit_set[m.to])));
+		  }
+	  }
+	  else if(m.isCapture)
+	  {
+		  MakeCaptureMove_NoUpdate(m.piece, m.captured, m.from, m.to);
+	  }
+	  else
+	  {
+		  MakeNormalMove_NoUpdate(m.piece, m.from, m.to);
+		  if(m.piece == PieceType::wpawns && m.to != (m.from+8))
+		  {
+			  epSquare = Sq::ESq((unsigned)m.from+8);
+		  }
+		  else if(m.piece == PieceType::bpawns && m.to != (m.from-8))
+		  {
+			  epSquare = Sq::ESq((unsigned)m.from-8);
+		  }
+	  }
+
+	  isWhitesTurn = !isWhitesTurn;
+
+	  UpdateAll();
+
+	  return IsLegal();
+  }
+
+
 
   bool WhiteCanCastleKingSide() const { return castling[0]; }
   bool BlackCanCastleKingSide() const { return castling[2]; }
@@ -103,15 +194,19 @@ public:
   {
     pcBB[p] |= ( fileBB[file] & rankBB[rank] );
   }
-  void MakeNormalMove( const PieceType::EPieceType p, const Sq::ESq from, const Sq::ESq to )
+  void MakeNormalMove_NoUpdate( const PieceType::EPieceType p, const Sq::ESq from, const Sq::ESq to )
   {
     DO_SAFE( ASSERTS_MakeNormalMove(p,from,to) );
 
     ClearPieceAt(p, SqFile(from), SqRank(from) );
     PutPieceAt(p,  SqFile(to), SqRank(to) );
+  }
+  void MakeNormalMove( const PieceType::EPieceType p, const Sq::ESq from, const Sq::ESq to )
+  {
+    MakeNormalMove_NoUpdate(p,from,to);
     UpdateAll();
   }
-  void MakeCaptureMove( const PieceType::EPieceType p, const PieceType::EPieceType c, const Sq::ESq from, const Sq::ESq to )
+  void MakeCaptureMove_NoUpdate( const PieceType::EPieceType p, const PieceType::EPieceType c, const Sq::ESq from, const Sq::ESq to )
   {
     DO_SAFE( ASSERTS_MakeCaptureMove(p,c,from,to) );
 
@@ -121,17 +216,25 @@ public:
     ClearPieceAt(p, SqFile(from), SqRank(from));
     ClearPieceAt(c, toFile, toRank);
     PutPieceAt(p, toFile, toRank);
+  }
+  void MakeCaptureMove( const PieceType::EPieceType p, const PieceType::EPieceType c, const Sq::ESq from, const Sq::ESq to )
+  {
+	MakeCaptureMove_NoUpdate(p,c,from,to);
     UpdateAll();
   }
-  void MakePromotionMove( const PieceType::EPieceType p, const PieceType::EPieceType n, const Sq::ESq from, const Sq::ESq to )
+  void MakePromotionMove_NoUpdate( const PieceType::EPieceType p, const PieceType::EPieceType n, const Sq::ESq from, const Sq::ESq to )
   {
     DO_SAFE( ASSERTS_MakePromotionMove(p,n,from,to) ) ;
 
     ClearPieceAt(p, SqFile(from), SqRank(from));
     PutPieceAt(n,  SqFile(to), SqRank(to) );
+  }
+  void MakePromotionMove( const PieceType::EPieceType p, const PieceType::EPieceType n, const Sq::ESq from, const Sq::ESq to )
+  {
+    MakePromotionMove_NoUpdate(p, n, from, to);
     UpdateAll();
   }
-  void MakeCapturePromotionMove( const PieceType::EPieceType p, const PieceType::EPieceType c, const PieceType::EPieceType n, const Sq::ESq from, const Sq::ESq to )
+  void MakeCapturePromotionMove_NoUpdate( const PieceType::EPieceType p, const PieceType::EPieceType c, const PieceType::EPieceType n, const Sq::ESq from, const Sq::ESq to )
   {
     DO_SAFE( ASSERTS_MakeCapturePromotionMove(p,c,n,from,to) );
 
@@ -141,6 +244,11 @@ public:
     ClearPieceAt(p, SqFile(from), SqRank(from));
     ClearPieceAt(c, toFile, toRank);
     PutPieceAt(n, toFile, toRank);
+    UpdateAll();
+  }
+  void MakeCapturePromotionMove( const PieceType::EPieceType p, const PieceType::EPieceType c, const PieceType::EPieceType n, const Sq::ESq from, const Sq::ESq to )
+  {
+    MakeCapturePromotionMove_NoUpdate(p,c,n,from,to);
     UpdateAll();
   }
   void UpdateWhite()
