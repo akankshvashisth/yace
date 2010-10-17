@@ -287,6 +287,31 @@ unsigned bitScanForward_DeBruijn(ui64 bb)
 #pragma warning( pop )
 #endif
 
+/**
+ * bitScanReverse
+ * @author Gerd Isenberg
+ * @param bb bitboard to scan
+ * @return index (0..63) of most significant one bit
+ *         -1023 if passing zero
+ */
+unsigned bitScanReverse_01(ui64 bb)
+{
+   assert(bb!=0);
+   union 
+   {
+      double d;
+      struct 
+	  {
+         unsigned int mantissal : 32;
+         unsigned int mantissah : 20;
+         unsigned int exponent	: 11;
+         unsigned int sign		: 1;
+      };
+   } ud;
+   ud.d = (double)(bb & ~(bb >> 32));  // avoid rounding error
+   return ud.exponent - 1023;
+}
+
 
 
 #endif

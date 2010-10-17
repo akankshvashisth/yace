@@ -4,8 +4,8 @@
 #include "typedefs.hpp"
 #include "constants.hpp"
 
-inline BB S( BB b ){ return b<<8; }
-inline BB N( BB b ){ return b>>8; }
+inline BB S( BB b ){ return b>>8; }
+inline BB N( BB b ){ return b<<8; }
 inline BB E( BB b ){ return ( b << 1 ) & Constants::not_file_a; }
 inline BB W( BB b ){ return ( b >> 1 ) & Constants::not_file_h; }
 

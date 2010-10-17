@@ -27,5 +27,6 @@ inline unsigned PopulationCount (ui64 x){ return popCount(x); }
 inline unsigned HammingDistance (ui64 a, ui64 b) {return PopulationCount( a ^ b);}
 
 inline unsigned BitScanForward(ui64 x){ return bitScanForward_DeBruijn(x); }
+inline unsigned BitScanReverse(ui64 x){ return bitScanReverse_01(x); }
 
 #endif

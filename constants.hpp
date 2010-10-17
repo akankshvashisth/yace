@@ -88,4 +88,6 @@ const ui64 fileBB[] =
   Constants::file_h
 };
 
+const i64 directionShift[]={ 7, 8, 9, -1, 1 -9, -8, -7 };
+
 #endif

@@ -4,6 +4,9 @@
 #include "fen_parser.hpp"
 #include "random.hpp"
 #include "bitboard_fen.hpp"
+#include "lookup.hpp"
+#include "piece_attacks.hpp"
+#include "move_gen.hpp"
 
 int main()
 {
@@ -47,16 +50,44 @@ int main()
     //FEN::FenParser("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2");
     //FEN::FenParser("r1bqkb1r/5ppp/p1np1n2/1p1Np1B1/4P3/N7/PPP2PPP/R2QKB1R b KQkq - 0 10");
 
-    const std::string fen("rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2");
+    //const std::string fen("rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2");
+    //Bitboard b;
+    ////Show<ShowTypes::Console>::Op(b);
+    //b = BitboardFromFen(fen);
+    //const std::string fenFromBoard = FenFromBitboard(b);
+    ////Show<ShowTypes::Console>::Op(b);
+    //Show<ShowTypes::Console>::Op(fen);
+    //Show<ShowTypes::Console>::Op(fenFromBoard);
+    //Show<ShowTypes::Console>::Op(FEN::FenParser(fen));
+    //Show<ShowTypes::Console>::Op(b);
+
+	init_all();
+
+	//for(unsigned i=0; i<64; ++i)
+	//{
+	//	Show<ShowTypes::Console>::Op(lookup::direction_attacks[Dir::SE][i]);
+	//	Show<ShowTypes::Console>::Op("--------");
+	//}
+
+
+	//Show<ShowTypes::Console>::Op( QueenAttacks((Constants::file_d|Constants::rank_5), Sq::g2) );
+
+	const std::string fen("rnbqkbnr/8/pppppppp/8/8/PPPPPPPP/8/RNBQKBNR w KQkq - 0 1");
     Bitboard b;
     //Show<ShowTypes::Console>::Op(b);
     b = BitboardFromFen(fen);
-    const std::string fenFromBoard = FenFromBitboard(b);
-    //Show<ShowTypes::Console>::Op(b);
-    Show<ShowTypes::Console>::Op(fen);
-    Show<ShowTypes::Console>::Op(fenFromBoard);
-    //Show<ShowTypes::Console>::Op(FEN::FenParser(fen));
-    //Show<ShowTypes::Console>::Op(b);
+	std::vector<move> mvs = GeneratePseudoLegalMoves(b);
+
+
+
+
+
+
+	for(int i=0; i<mvs.size(); ++i)
+	{
+
+	}
+
 
     return 0;
 }

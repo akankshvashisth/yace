@@ -44,6 +44,16 @@ namespace Sq
   };
 }
 
+namespace Dir
+{
+	enum EDir
+	{
+		 NW=0, N=1,  NE=2,
+		  W=3      ,  E=4,
+		 SW=5, S=6 , SE=7
+	};
+}
+
 namespace Ranges
 {
   enum ERanges
