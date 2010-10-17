@@ -16,6 +16,7 @@ struct move
 {
 	PieceType::EPieceType piece;
 	Sq::ESq from, to;
+	bool isEp;
 	bool isCapture;
 };
 
@@ -23,10 +24,14 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 {
 	std::vector<move> mvs;
 	const bool isWhitesTurn = bb.IsWhitesTurn();
-	ui64 pawns, bishops, rooks, queens, knights, king, opponent, self;
+	ui64 pawns, bishops, rooks, queens, knights, king, opponent, self, opponentOrEp;
 	ui64 empty = (bb.PiecesAt(PieceType::none));
 	ui64 all = bb.PiecesAt(PieceType::all);
 	PieceType::EPieceType epawns, ebishops, erooks, equeens, eknights, eking, eopponent, eself;
+	const  Sq::ESq epSq = bb.EpSquare();
+	const ui64 epSqBB = lookup::single_bit_set[epSq];
+	/*const bool hasEp = epSq != Sq::none;*/
+	
 	move m;
 
 	if(isWhitesTurn)
@@ -70,19 +75,22 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 		eself    = PieceType::black		;
 	}
 
+	opponentOrEp = opponent | epSqBB;
+
 	const ui64 pcnt = PopulationCount(pawns  ); 
 	const ui64 bcnt = PopulationCount(bishops);   
 	const ui64 rcnt = PopulationCount(rooks  ); 
 	const ui64 qcnt = PopulationCount(queens ); 
 	const ui64 ncnt = PopulationCount(knights); 
 	//const ui64 kcnt = PopulationCount(king   ); 
-
+	
 	{
 		m.piece = epawns;
 		if(isWhitesTurn)
 		{
 			for(unsigned i=0; i<pcnt; ++i)
 			{
+				m.isEp = false;
 				Sq::ESq sq = (Sq::ESq)BitScanForward(pawns);
 				m.from = sq;
 				const ui64 sqBB = lookup::single_bit_set[sq];
@@ -99,7 +107,7 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 					m.isCapture = false;
 					mvs.push_back(m);
 				}
-				ui64 captures = WhitePawnsAbleToCaptureAny (sqBB, opponent);
+				ui64 captures = WhitePawnAnyAttacks (sqBB) &  opponentOrEp;
 				const ui64 capcnt    = PopulationCount(captures);
 				for(unsigned j=0; j<capcnt; ++j)
 				{
@@ -107,6 +115,7 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 					captures &= (~lookup::single_bit_set[to]);
 					m.to = to;
 					m.isCapture = true;
+					m.isEp = (to == epSq);
 					mvs.push_back(m);
 				}
 			}
@@ -115,6 +124,7 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 		{
 			for(unsigned i=0; i<pcnt; ++i)
 			{
+				m.isEp = false;
 				Sq::ESq sq = (Sq::ESq)BitScanForward(pawns);
 				m.from = sq;
 				const ui64 sqBB = lookup::single_bit_set[sq];
@@ -131,19 +141,22 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 					m.isCapture = false;
 					mvs.push_back(m);
 				}
-				ui64 captures = BlackPawnsAbleToCaptureAny (sqBB, opponent);
+				ui64 captures = BlackPawnAnyAttacks (sqBB) & opponentOrEp;
 				const ui64 capcnt    = PopulationCount(captures);
 				for(unsigned j=0; j<capcnt; ++j)
 				{
 					Sq::ESq to = (Sq::ESq)BitScanForward(captures);
 					captures &= (~lookup::single_bit_set[to]);
 					m.to = to;
+					m.isEp = (to == epSq);
 					m.isCapture = true;
 					mvs.push_back(m);
 				}
 			}
 		}
 	}
+
+	m.isEp = false;
 
 	m.piece = ebishops;
 	for(unsigned i=0; i<bcnt; ++i)
@@ -179,20 +192,10 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 	{
 		Sq::ESq sq = (Sq::ESq)BitScanForward(rooks);
 		m.from = sq;
-		Show<ShowTypes::Console>::Op(rooks);
-		Show<ShowTypes::Console>::Op("--------");
 		rooks &= (~lookup::single_bit_set[sq]);
-		Show<ShowTypes::Console>::Op(rooks);
-		Show<ShowTypes::Console>::Op("--------");
 		const ui64 pmvs = RookAttacks(bb.PiecesAt(PieceType::all), sq);
-		Show<ShowTypes::Console>::Op(pmvs);
-		Show<ShowTypes::Console>::Op("--------");
 		ui64 captures  = pmvs & opponent;
 		ui64 normal    = (pmvs & empty);
-		Show<ShowTypes::Console>::Op(captures);
-		Show<ShowTypes::Console>::Op("--------");
-		Show<ShowTypes::Console>::Op(normal);
-		Show<ShowTypes::Console>::Op("--------");
 		const ui64 capcnt    = PopulationCount(captures);
 		const ui64 norcnt    = PopulationCount(normal);
 		for(unsigned j=0; j<capcnt; ++j)
@@ -300,9 +303,7 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 			mvs.push_back(m);
 		}
 	}
-
 	return mvs;
-
 }
 
 
