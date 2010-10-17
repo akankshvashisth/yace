@@ -25,7 +25,7 @@ Sq::ESq SquareFromFileRank( Files::EFiles f, Ranks::ERanks r )
 struct Bitboard
 {
 public:
-  BB pcBB[14];
+  BB pcBB[16];
   BB emptyBB;
   BB occupiedBB;
 	unsigned int halfMoveClock;
@@ -166,11 +166,13 @@ public:
     assert( (pcBB[PieceType::black] & pcBB[PieceType::white]) == Constants::clear ); //No overlap
     DO_SAFE(occupiedBB = Constants::clear);
     occupiedBB = (pcBB[PieceType::black] | pcBB[PieceType::white]);
+	pcBB[PieceType::all] = occupiedBB;
   }
   void UpdateEmpty()
   {
     DO_SAFE(emptyBB = Constants::clear);
     emptyBB = ~occupiedBB;
+	pcBB[PieceType::none] = emptyBB;
   }
   void UpdateAll()
   {
@@ -179,6 +181,7 @@ public:
     UpdateOccupied();
     UpdateEmpty();
   }
+
   void ASSERTS_MakeCapturePromotionMove( const PieceType::EPieceType p, const PieceType::EPieceType c, const PieceType::EPieceType n, const Sq::ESq from, const Sq::ESq to )
   {
     assert( IsSqOccupied(to) );
