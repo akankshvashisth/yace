@@ -13,8 +13,6 @@
 
 #include <vector>
 
-
-
 std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 {
 	std::vector<move> mvs;
@@ -28,6 +26,8 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 	/*const bool hasEp = epSq != Sq::none;*/
 	
 	move m;
+	m.isKingSideCastle = false;
+	m.isQueenSideCastle = false;
 
 	if(isWhitesTurn)
 	{
@@ -86,6 +86,8 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 			for(unsigned i=0; i<pcnt; ++i)
 			{
 				m.isEp = false;
+				m.isPromotion = false;
+
 				Sq::ESq sq = (Sq::ESq)BitScanForward(pawns);
 				m.from = sq;
 				const ui64 sqBB = lookup::single_bit_set[sq];
@@ -100,7 +102,22 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 					normal &= (~lookup::single_bit_set[to]);
 					m.to = to;
 					m.isCapture = false;
-					mvs.push_back(m);
+					if( lookup::single_bit_set[to] & Constants::rank_8 )
+					{
+						m.isPromotion = true;
+						m.promoted = PieceType::wqueens;
+						mvs.push_back(m);
+						m.promoted = PieceType::wrooks;
+						mvs.push_back(m);
+						m.promoted = PieceType::wbishops;
+						mvs.push_back(m);
+						m.promoted = PieceType::wknights;
+						mvs.push_back(m);
+					}
+					else
+					{
+					  mvs.push_back(m);
+					}
 				}
 				ui64 captures = WhitePawnAnyAttacks (sqBB) &  opponentOrEp;
 				const ui64 capcnt    = PopulationCount(captures);
@@ -112,7 +129,22 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 					m.isCapture = true;
 					m.captured = bb.PieceAtSq(to);
 					m.isEp = (to == epSq);
-					mvs.push_back(m);
+					if( lookup::single_bit_set[to] & Constants::rank_8 )
+					{
+						m.isPromotion = true;
+						m.promoted = PieceType::wqueens;
+						mvs.push_back(m);
+						m.promoted = PieceType::wrooks;
+						mvs.push_back(m);
+						m.promoted = PieceType::wbishops;
+						mvs.push_back(m);
+						m.promoted = PieceType::wknights;
+						mvs.push_back(m);
+					}
+					else
+					{
+					  mvs.push_back(m);
+					}
 				}
 			}
 		}
@@ -121,6 +153,7 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 			for(unsigned i=0; i<pcnt; ++i)
 			{
 				m.isEp = false;
+				m.isPromotion = false;
 				Sq::ESq sq = (Sq::ESq)BitScanForward(pawns);
 				m.from = sq;
 				const ui64 sqBB = lookup::single_bit_set[sq];
@@ -134,8 +167,22 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 					Sq::ESq to = (Sq::ESq)BitScanForward(normal);
 					normal &= (~lookup::single_bit_set[to]);
 					m.to = to;
-					m.isCapture = false;
-					mvs.push_back(m);
+					m.isCapture = false;if( lookup::single_bit_set[to] & Constants::rank_8 )
+					{
+						m.isPromotion = true;
+						m.promoted = PieceType::wqueens;
+						mvs.push_back(m);
+						m.promoted = PieceType::wrooks;
+						mvs.push_back(m);
+						m.promoted = PieceType::wbishops;
+						mvs.push_back(m);
+						m.promoted = PieceType::wknights;
+						mvs.push_back(m);
+					}
+					else
+					{
+					  mvs.push_back(m);
+					}
 				}
 				ui64 captures = BlackPawnAnyAttacks (sqBB) & opponentOrEp;
 				const ui64 capcnt    = PopulationCount(captures);
@@ -146,14 +193,30 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 					m.to = to;
 					m.isEp = (to == epSq);
 					m.isCapture = true;
-					m.captured = bb.PieceAtSq(to);
-					mvs.push_back(m);
+					m.captured = bb.PieceAtSq(to);if( lookup::single_bit_set[to] & Constants::rank_8 )
+					{
+						m.isPromotion = true;
+						m.promoted = PieceType::wqueens;
+						mvs.push_back(m);
+						m.promoted = PieceType::wrooks;
+						mvs.push_back(m);
+						m.promoted = PieceType::wbishops;
+						mvs.push_back(m);
+						m.promoted = PieceType::wknights;
+						mvs.push_back(m);
+					}
+					else
+					{
+					  mvs.push_back(m);
+					}
 				}
 			}
 		}
 	}
 
 	m.isEp = false;
+	m.isPromotion = false;
+	//m.promoted = PieceType::none;
 
 	m.piece = ebishops;
 	for(unsigned i=0; i<bcnt; ++i)
@@ -166,21 +229,21 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 		ui64 normal    = (pmvs & empty);
 		const ui64 capcnt    = PopulationCount(captures);
 		const ui64 norcnt    = PopulationCount(normal);
+		m.isCapture = true;
 		for(unsigned j=0; j<capcnt; ++j)
 		{
 			Sq::ESq to = (Sq::ESq)BitScanForward(captures);
 			captures &= (~lookup::single_bit_set[to]);
 			m.to = to;
-			m.isCapture = true;
 			m.captured = bb.PieceAtSq(to);
 			mvs.push_back(m);
 		}
+		m.isCapture = false;
 		for(unsigned j=0; j<norcnt; ++j)
 		{
 			Sq::ESq to = (Sq::ESq)BitScanForward(normal);
 			normal &= (~lookup::single_bit_set[to]);
 			m.to = to;
-			m.isCapture = false;
 			mvs.push_back(m);
 		}
 	}
@@ -196,21 +259,21 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 		ui64 normal    = (pmvs & empty);
 		const ui64 capcnt    = PopulationCount(captures);
 		const ui64 norcnt    = PopulationCount(normal);
+		m.isCapture = true;
 		for(unsigned j=0; j<capcnt; ++j)
 		{
 			Sq::ESq to = (Sq::ESq)BitScanForward(captures);
 			captures &= (~lookup::single_bit_set[to]);
 			m.to = to;
-			m.isCapture = true;
 			m.captured = bb.PieceAtSq(to);
 			mvs.push_back(m);
 		}
+		m.isCapture = false;
 		for(unsigned j=0; j<norcnt; ++j)
 		{
 			Sq::ESq to = (Sq::ESq)BitScanForward(normal);
 			normal &= (~lookup::single_bit_set[to]);
 			m.to = to;
-			m.isCapture = false;
 			mvs.push_back(m);
 		}
 	}
@@ -226,21 +289,21 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 		ui64 normal    = (pmvs & empty);
 		const ui64 capcnt    = PopulationCount(captures);
 		const ui64 norcnt    = PopulationCount(normal);
+		m.isCapture = true;
 		for(unsigned j=0; j<capcnt; ++j)
 		{
 			Sq::ESq to = (Sq::ESq)BitScanForward(captures);
 			captures &= (~lookup::single_bit_set[to]);
 			m.to = to;
-			m.isCapture = true;
 			m.captured = bb.PieceAtSq(to);
 			mvs.push_back(m);
 		}
+		m.isCapture = false;
 		for(unsigned j=0; j<norcnt; ++j)
 		{
 			Sq::ESq to = (Sq::ESq)BitScanForward(normal);
 			normal &= (~lookup::single_bit_set[to]);
 			m.to = to;
-			m.isCapture = false;
 			mvs.push_back(m);
 		}
 	}
@@ -257,21 +320,21 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 		ui64 normal    = (pmvs & empty) ;
 		const ui64 capcnt    = PopulationCount(captures);
 		const ui64 norcnt    = PopulationCount(normal);
+		m.isCapture = true;
 		for(unsigned j=0; j<capcnt; ++j)
 		{
 			Sq::ESq to = (Sq::ESq)BitScanForward(captures);
 			captures &= (~lookup::single_bit_set[to]);
 			m.to = to;
-			m.isCapture = true;
 			m.captured = bb.PieceAtSq(to);
 			mvs.push_back(m);
 		}
+		m.isCapture = false;
 		for(unsigned j=0; j<norcnt; ++j)
 		{
 			Sq::ESq to = (Sq::ESq)BitScanForward(normal);
 			normal &= (~lookup::single_bit_set[to]);
 			m.to = to;
-			m.isCapture = false;
 			mvs.push_back(m);
 		}
 	}
@@ -287,25 +350,74 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 		ui64 normal    = (pmvs & empty);
 		const ui64 capcnt    = PopulationCount(captures);
 		const ui64 norcnt    = PopulationCount(normal);
+		m.isCapture = true;
 		for(unsigned j=0; j<capcnt; ++j)
 		{
 			Sq::ESq to = (Sq::ESq)BitScanForward(captures);
 			captures &= (~lookup::single_bit_set[to]);
 			m.to = to;
-			m.isCapture = true;
 			m.captured = bb.PieceAtSq(to);
 			mvs.push_back(m);
 		}
+		m.isCapture = false;
 		for(unsigned j=0; j<norcnt; ++j)
 		{
 			Sq::ESq to = (Sq::ESq)BitScanForward(normal);
 			normal &= (~lookup::single_bit_set[to]);
 			m.to = to;
-			m.isCapture = false;
 			mvs.push_back(m);
+		}
+		if(bb.IsWhitesTurn())
+		{
+			if( bb.WhiteCanCastleKingSide() ) 
+			{
+				m.isKingSideCastle = true;
+				mvs.push_back(m);
+				m.isKingSideCastle = false;
+			}
+			if( bb.WhiteCanCastleQueenSide() )
+			{
+				m.isQueenSideCastle = true;
+				mvs.push_back(m);
+			}
+		}
+		else
+		{
+			if( bb.BlackCanCastleKingSide() ) 
+			{
+				m.isKingSideCastle = true;
+				mvs.push_back(m);
+				m.isKingSideCastle = false;
+			}
+			if( bb.BlackCanCastleQueenSide() )
+			{
+				m.isQueenSideCastle = true;
+				mvs.push_back(m);
+			}
 		}
 	}
 	return mvs;
+}
+
+
+std::vector<move> GenerateLegalMoves( Bitboard& bb )
+{
+	std::vector<move> mvs = GeneratePseudoLegalMoves(bb);
+	std::vector<move> legal, notlegal;
+
+	for( unsigned i=0; i<mvs.size(); ++i )
+	{
+		Bitboard bb_local(bb);
+		if(bb_local.MakeMove(mvs[i]))
+		{
+			legal.push_back(mvs[i]);
+		}
+		else
+		{
+			notlegal.push_back(mvs[i]);
+		}
+	}
+	return legal;
 }
 
 

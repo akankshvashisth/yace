@@ -12,6 +12,8 @@ struct move
 	bool isEp;
 	bool isCapture;
 	bool isPromotion;
+	bool isKingSideCastle;
+	bool isQueenSideCastle;
 };
 
 #endif
