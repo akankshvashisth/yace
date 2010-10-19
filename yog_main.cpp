@@ -72,11 +72,13 @@ int main()
 
 	//Show<ShowTypes::Console>::Op( QueenAttacks((Constants::file_d|Constants::rank_5), Sq::g2) );
 
-	const std::string fen("k7/8/8/3Pp3/8/8/8/7K w - e6 0 2");
+	const std::string fen("8/8/8/8/8/8/1k4p1/R3K2R w KQ - 0 1");
     Bitboard b;
     //Show<ShowTypes::Console>::Op(b);
     b = BitboardFromFen(fen);
-	std::vector<move> mvs = GeneratePseudoLegalMoves(b);
+	Show<ShowTypes::Console>::Op(b);
+	std::vector<move> mvs   = GeneratePseudoLegalMoves(b);
+	std::vector<move> legal = GenerateLegalMoves(b);
 
 
 
