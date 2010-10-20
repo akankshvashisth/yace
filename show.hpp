@@ -113,13 +113,16 @@ struct Show<ShowTypes::Console>
     }
   }
 
-  //template<>
-  //void  Show<ShowTypes::Console>::Op<ui64>( const move& m )
-  //{
-  //  std::string s("");
-  //  s += to_string(m.moveNum);
-  //  s += PieceColor(m.piece) == Color::white ? std::string(".") : std::string("...");
-  //  s += PieceType::SPieceType_short[m.
-  //}
+  template<>
+  void  Show<ShowTypes::Console>::Op<move>( const move& m )
+  {
+    std::string s("");
+    //s += to_string(m.moveNum);
+    //s += PieceColor(m.piece) == Color::white ? std::string(".") : std::string("...");
+    //s += PieceType::SPieceType_short[m.
+	s += Sq::SSq[m.from];
+	s += Sq::SSq[m.to];
+	std::cout << s << " ";
+  }
 
 #endif

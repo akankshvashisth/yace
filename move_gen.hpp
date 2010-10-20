@@ -9,8 +9,10 @@
 #include "enums.hpp"
 #include "move.hpp"
 
+
 //#include "show.hpp"
 
+#include <utility>
 #include <vector>
 
 std::vector<move>& GeneratePseudoLegalMoves( Bitboard& bb, std::vector<move>& mvs )
@@ -442,7 +444,8 @@ std::vector<move> GenerateIllegalMoves( Bitboard& bb, std::vector<move>& mvs, st
 
 int Perft( Bitboard& bb, int depth )
 {
-  std::vector<move> mvs(64);
+  std::vector<move> mvs;
+  mvs.reserve(64);
   int n_moves, i;
   ui64 nodes = 0;
  
@@ -466,20 +469,20 @@ std::vector< std::pair<move, int> > Divide( Bitboard& bb, int depth )
 {
   std::vector<move> mvs;
   std::vector< std::pair<move, int> > toReturn;
-  //int n_moves, i;
-  //ui64 nodes = 0;
+  int n_moves, i;
+  ui64 nodes = 0;
 
-  //mvs = GeneratePseudoLegalMoves(bb, mvs);
-  //n_moves = mvs.size();
-  //for (i = 0; i < n_moves; i++) 
-  //{
-  //  Bitboard bb_local(bb);
-  //  move m = mvs[i];
-  //  if(bb_local.MakeMove(m))
-  //  {
-  //    toReturn.push_back(std::make_pair(m,Perft(bb_local,depth - 1)));
-  //  }
-  //}
+  mvs = GeneratePseudoLegalMoves(bb, mvs);
+  n_moves = mvs.size();
+  for (i = 0; i < n_moves; i++) 
+  {
+    Bitboard bb_local(bb);
+    move m = mvs[i];
+    if(bb_local.MakeMove(m))
+    {
+      toReturn.push_back(std::make_pair(m,Perft(bb_local,depth - 1)));
+    }
+  }
   return toReturn;
 }
 #endif
