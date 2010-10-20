@@ -7,6 +7,8 @@
 #include "bitfunctions.hpp"
 #include "strings.hpp"
 #include "fen_parser.hpp"
+#include "move.hpp"
+#include "chessutils.hpp"
 
 namespace ShowTypes
 {
@@ -110,5 +112,14 @@ struct Show<ShowTypes::Console>
       std::cout << std::endl;
     }
   }
+
+  //template<>
+  //void  Show<ShowTypes::Console>::Op<ui64>( const move& m )
+  //{
+  //  std::string s("");
+  //  s += to_string(m.moveNum);
+  //  s += PieceColor(m.piece) == Color::white ? std::string(".") : std::string("...");
+  //  s += PieceType::SPieceType_short[m.
+  //}
 
 #endif

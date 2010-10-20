@@ -9,6 +9,14 @@
 #include <vector>
 #include <cstdlib>
 
+template <class T>
+inline std::string to_string (const T& t)
+{
+  std::stringstream ss;
+  ss << t;
+  return ss.str();
+}
+
 namespace FEN
 {
 	class Appender : public std::vector<std::string> {
