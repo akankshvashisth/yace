@@ -131,29 +131,29 @@ public:
 	  }
     if( (lookup::single_bit_set[sqOfKing0] & pcBB[sideToMove+PieceType::king_diff]) == Constants::clear )
     {
-      if(isWhitesTurn)
-      {
-        castling[0] = false;
-        castling[1] = false;
-      }
-      else
-      {
-        castling[2] = false;
-        castling[3] = false;
-      }
+      //if(isWhitesTurn)
+      //{
+      //  castling[0] = false;
+      //  castling[1] = false;
+      //}
+      //else
+      //{
+      //  castling[2] = false;
+      //  castling[3] = false;
+      //}
       return false;
     }
     
     if( (lookup::single_bit_set[sqOfRook] & pcBB[sideToMove+PieceType::rooks_diff]) == Constants::clear )
     {
-      if(isWhitesTurn)
-      {
-        castling[0] = false;
-      }
-      else
-      {
-        castling[2] = false;
-      }
+      //if(isWhitesTurn)
+      //{
+      //  castling[0] = false;
+      //}
+      //else
+      //{
+      //  castling[2] = false;
+      //}
       return false;
     }
 
@@ -209,54 +209,54 @@ public:
 
 	  if(isWhitesTurn)
 	  {
-		  sideToMove = isWhitesTurn? PieceType::white : PieceType::black;
-		  opponent   = isWhitesTurn? PieceType::black : PieceType::white;
+		  sideToMove =  PieceType::white ;
+		  opponent   =  PieceType::black ;
 
 		  sqOfKing0 =  Sq::e1;
 		  sqOfKing1 =  Sq::d1;
 		  sqOfKing2 =  Sq::c1;
-      sqOfKing3 =  Sq::b1;
+          sqOfKing3 =  Sq::b1;
 
-      sqOfRook = Sq::a1;
+          sqOfRook = Sq::a1;
 	  }
 	  else
 	  {
-		  sideToMove = isWhitesTurn? PieceType::white : PieceType::black;
-		  opponent   = isWhitesTurn? PieceType::black : PieceType::white;
+		  sideToMove =  PieceType::black ;
+		  opponent   =  PieceType::white ;
 
 		  sqOfKing0 =  Sq::e8;
 		  sqOfKing1 =  Sq::d8;
 		  sqOfKing2 =  Sq::c8;
-      sqOfKing3 =  Sq::b8;
+		  sqOfKing3 =  Sq::b8;
 
-      sqOfRook = Sq::a1;
+          sqOfRook = Sq::a8;
 	  }
 
     if( (lookup::single_bit_set[sqOfKing0] & pcBB[sideToMove+PieceType::king_diff]) == Constants::clear )
     {
-      if(isWhitesTurn)
-      {
-        castling[0] = false;
-        castling[1] = false;
-      }
-      else
-      {
-        castling[2] = false;
-        castling[3] = false;
-      }
+      //if(isWhitesTurn)
+      //{
+      //  castling[0] = false;
+      //  castling[1] = false;
+      //}
+      //else
+      //{
+      //  castling[2] = false;
+      //  castling[3] = false;
+      //}
       return false;
     }
     
     if( (lookup::single_bit_set[sqOfRook] & pcBB[sideToMove+PieceType::rooks_diff]) == Constants::clear )
     {
-      if(isWhitesTurn)
-      {
-        castling[1] = false;
-      }
-      else
-      {
-        castling[3] = false;
-      }
+      //if(isWhitesTurn)
+      //{
+      //  castling[1] = false;
+      //}
+      //else
+      //{
+      //  castling[3] = false;
+      //}
       return false;
     }
 
@@ -355,7 +355,9 @@ public:
 				ClearPieceAt(PieceType::brooks, SqFile(Sq::h8), SqRank(Sq::h8) );
 				PutPieceAt  (PieceType::brooks, SqFile(Sq::f8), SqRank(Sq::f8) );
 		  }
-      isWhitesTurn = !isWhitesTurn;
+			isWhitesTurn = !isWhitesTurn;
+
+			if(isLegal) UpdateAll();
 		  return isLegal;
 	  }
 	  else if(m.isQueenSideCastle)
@@ -375,7 +377,8 @@ public:
 				ClearPieceAt(PieceType::brooks, SqFile(Sq::a8), SqRank(Sq::a8) );
 				PutPieceAt  (PieceType::brooks, SqFile(Sq::d8), SqRank(Sq::d8) );
 		  }
-      isWhitesTurn = !isWhitesTurn;
+			isWhitesTurn = !isWhitesTurn;
+			if(isLegal) UpdateAll();
 		  return isLegal;
 	  }
 	  else
@@ -395,10 +398,38 @@ public:
 
 	  UpdateAll();
 
+	  if(castling[0] || castling[1] || castling[2] || castling[3])
+	  {
+		  if((PiecesAt(PieceType::wking) & lookup::single_bit_set[Sq::e1])==Constants::clear)
+		  {
+			castling[0] = false;
+			castling[1] = false;
+		  }
+		  if((PiecesAt(PieceType::bking) & lookup::single_bit_set[Sq::e8])==Constants::clear)
+		  {
+			castling[2] = false;
+			castling[3] = false;
+		  }
+		  if((PiecesAt(PieceType::wrooks) & lookup::single_bit_set[Sq::h1])==Constants::clear)
+		  {
+			castling[0] = false;
+		  }
+		  if((PiecesAt(PieceType::wrooks) & lookup::single_bit_set[Sq::a1])==Constants::clear)
+		  {
+			castling[1] = false;
+		  }
+		  if((PiecesAt(PieceType::brooks) & lookup::single_bit_set[Sq::h8])==Constants::clear)
+		  {
+			castling[2] = false;
+		  }
+		  if((PiecesAt(PieceType::brooks) & lookup::single_bit_set[Sq::a8])==Constants::clear)
+		  {
+			castling[3] = false;
+		  }
+	  }
+
 	  return IsLegal();
   }
-
-
 
   bool WhiteCanCastleKingSide() const { return castling[0]; }
   bool BlackCanCastleKingSide() const { return castling[2]; }
