@@ -105,6 +105,7 @@ public:
 	  Sq::ESq sqOfKing0;
 	  Sq::ESq sqOfKing1;
 	  Sq::ESq sqOfKing2;
+    Sq::ESq sqOfRook;
 
 	  if(isWhitesTurn)
 	  {
@@ -114,6 +115,8 @@ public:
 		  sqOfKing0 =  Sq::e1 ;
 		  sqOfKing1 =  Sq::f1 ;
 		  sqOfKing2 =  Sq::g1 ;
+
+      sqOfRook = Sq::h1;
 	  }
 	  else
 	  {
@@ -123,7 +126,43 @@ public:
 		  sqOfKing0 =  Sq::e8;
 		  sqOfKing1 =  Sq::f8;
 		  sqOfKing2 =  Sq::g8;
+
+      sqOfRook = Sq::h8;
 	  }
+    if( (lookup::single_bit_set[sqOfKing0] & pcBB[sideToMove+PieceType::king_diff]) == Constants::clear )
+    {
+      if(isWhitesTurn)
+      {
+        castling[0] = false;
+        castling[1] = false;
+      }
+      else
+      {
+        castling[2] = false;
+        castling[3] = false;
+      }
+      return false;
+    }
+    
+    if( (lookup::single_bit_set[sqOfRook] & pcBB[sideToMove+PieceType::rooks_diff]) == Constants::clear )
+    {
+      if(isWhitesTurn)
+      {
+        castling[0] = false;
+      }
+      else
+      {
+        castling[2] = false;
+      }
+      return false;
+    }
+
+    ui64 sqBetweenKingAndRook = lookup::single_bit_set[sqOfKing1] | lookup::single_bit_set[sqOfKing2];
+    ui64 sqBetweenKingAndRookNotEmpty = sqBetweenKingAndRook & pcBB[PieceType::all];
+    if(sqBetweenKingAndRookNotEmpty) 
+    {
+      return false;
+    }
 
 	  pawns     = pcBB[opponent+PieceType::pawns_diff];
 	  knights   = pcBB[opponent+PieceType::knights_diff];
@@ -165,6 +204,8 @@ public:
 	  Sq::ESq sqOfKing0;
 	  Sq::ESq sqOfKing1;
 	  Sq::ESq sqOfKing2;
+    Sq::ESq sqOfKing3;
+    Sq::ESq sqOfRook;
 
 	  if(isWhitesTurn)
 	  {
@@ -174,6 +215,9 @@ public:
 		  sqOfKing0 =  Sq::e1;
 		  sqOfKing1 =  Sq::d1;
 		  sqOfKing2 =  Sq::c1;
+      sqOfKing3 =  Sq::b1;
+
+      sqOfRook = Sq::a1;
 	  }
 	  else
 	  {
@@ -182,8 +226,46 @@ public:
 
 		  sqOfKing0 =  Sq::e8;
 		  sqOfKing1 =  Sq::d8;
-		  sqOfKing2 =  Sq::e8;
+		  sqOfKing2 =  Sq::c8;
+      sqOfKing3 =  Sq::b8;
+
+      sqOfRook = Sq::a1;
 	  }
+
+    if( (lookup::single_bit_set[sqOfKing0] & pcBB[sideToMove+PieceType::king_diff]) == Constants::clear )
+    {
+      if(isWhitesTurn)
+      {
+        castling[0] = false;
+        castling[1] = false;
+      }
+      else
+      {
+        castling[2] = false;
+        castling[3] = false;
+      }
+      return false;
+    }
+    
+    if( (lookup::single_bit_set[sqOfRook] & pcBB[sideToMove+PieceType::rooks_diff]) == Constants::clear )
+    {
+      if(isWhitesTurn)
+      {
+        castling[1] = false;
+      }
+      else
+      {
+        castling[3] = false;
+      }
+      return false;
+    }
+
+    ui64 sqBetweenKingAndRook = lookup::single_bit_set[sqOfKing1] | lookup::single_bit_set[sqOfKing2] | lookup::single_bit_set[sqOfKing3];
+    ui64 sqBetweenKingAndRookNotEmpty = sqBetweenKingAndRook & pcBB[PieceType::all];
+    if(sqBetweenKingAndRookNotEmpty) 
+    {
+      return false;
+    }
 
 	  pawns     = pcBB[opponent+PieceType::pawns_diff];
 	  knights   = pcBB[opponent+PieceType::knights_diff];
@@ -217,8 +299,8 @@ public:
 
   bool ASSERT_IsPawnBehindEpCapture( Sq::ESq sq )
   {
-	return isWhitesTurn ? ((lookup::single_bit_set[ (sq)+8 ] & pcBB[PieceType::bpawns]) != Constants::clear) :
-						  ((lookup::single_bit_set[ (sq)-8 ] & pcBB[PieceType::wpawns]) != Constants::clear);
+	return isWhitesTurn ? ((lookup::single_bit_set[ (sq)-8 ] & pcBB[PieceType::bpawns]) != Constants::clear) :
+						            ((lookup::single_bit_set[ (sq)+8 ] & pcBB[PieceType::wpawns]) != Constants::clear);
   }
 
   bool MakeMove( move m )
@@ -228,7 +310,7 @@ public:
 	  {
 		  assert( m.piece == PieceType::wpawns || PieceType::bpawns );
 		  assert( (((int)m.to - (int)m.from) == 7)  || (((int)m.from - (int)m.to) == 9) ||
-				  (((int)m.to - (int)m.from) == -7) || (((int)m.from - (int)m.to) == -9) );
+				      (((int)m.to - (int)m.from) == -7) || (((int)m.from - (int)m.to) == -9) );
 		  assert( ASSERT_IsPawnBehindEpCapture(m.to) ); 
 
 		  MakeNormalMove_NoUpdate(m.piece, m.from, m.to);
@@ -261,18 +343,19 @@ public:
 		  bool isLegal = IsCastleKingsideLegal();
 		  if(isWhitesTurn)
 		  {
-			    ClearPieceAt(PieceType::wking, SqFile(Sq::e1),  SqRank(Sq::e1) );
+			  ClearPieceAt(PieceType::wking, SqFile(Sq::e1),  SqRank(Sq::e1) );
 				PutPieceAt  (PieceType::wking, SqFile(Sq::g1), SqRank(Sq::g1) );
 				ClearPieceAt(PieceType::wrooks, SqFile(Sq::h1), SqRank(Sq::h1) );
 				PutPieceAt  (PieceType::wrooks, SqFile(Sq::f1), SqRank(Sq::f1) );
 		  }
 		  else
 		  {
-			    ClearPieceAt(PieceType::bking, SqFile(Sq::e8), SqRank(Sq::e8) );
+			  ClearPieceAt(PieceType::bking, SqFile(Sq::e8), SqRank(Sq::e8) );
 				PutPieceAt  (PieceType::bking, SqFile(Sq::g8), SqRank(Sq::g8) );
 				ClearPieceAt(PieceType::brooks, SqFile(Sq::h8), SqRank(Sq::h8) );
 				PutPieceAt  (PieceType::brooks, SqFile(Sq::f8), SqRank(Sq::f8) );
 		  }
+      isWhitesTurn = !isWhitesTurn;
 		  return isLegal;
 	  }
 	  else if(m.isQueenSideCastle)
@@ -280,18 +363,19 @@ public:
 		  bool isLegal = IsCastleQueensideLegal();
 		  if(isWhitesTurn)
 		  {
-			    ClearPieceAt(PieceType::wking, SqFile(Sq::e1), SqRank(Sq::e1) );
+			  ClearPieceAt(PieceType::wking, SqFile(Sq::e1), SqRank(Sq::e1) );
 				PutPieceAt  (PieceType::wking, SqFile(Sq::c1), SqRank(Sq::c1) );
 				ClearPieceAt(PieceType::wrooks, SqFile(Sq::a1), SqRank(Sq::a1) );
 				PutPieceAt  (PieceType::wrooks, SqFile(Sq::d1), SqRank(Sq::d1) );
 		  }
 		  else
 		  {
-			    ClearPieceAt(PieceType::bking, SqFile(Sq::e8), SqRank(Sq::e8) );
+			  ClearPieceAt(PieceType::bking, SqFile(Sq::e8), SqRank(Sq::e8) );
 				PutPieceAt  (PieceType::bking, SqFile(Sq::c8), SqRank(Sq::c8) );
 				ClearPieceAt(PieceType::brooks, SqFile(Sq::a8), SqRank(Sq::a8) );
 				PutPieceAt  (PieceType::brooks, SqFile(Sq::d8), SqRank(Sq::d8) );
 		  }
+      isWhitesTurn = !isWhitesTurn;
 		  return isLegal;
 	  }
 	  else

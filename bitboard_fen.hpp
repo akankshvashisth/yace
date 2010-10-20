@@ -8,15 +8,6 @@
 #include <sstream>
 #include "strings.hpp"
 
-template <class T>
-inline std::string to_string (const T& t)
-{
-  std::stringstream ss;
-  ss << t;
-  return ss.str();
-}
-
-
 Bitboard BitboardFromFen( const std::string& fen )
 {
   const FEN::BoardRepresentation& br = FEN::FenParser(fen);

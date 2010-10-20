@@ -14,6 +14,7 @@ struct move
 	bool isPromotion;
 	bool isKingSideCastle;
 	bool isQueenSideCastle;
+  short moveNum;
 };
 
 #endif

@@ -13,9 +13,12 @@
 
 #include <vector>
 
-std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
+std::vector<move>& GeneratePseudoLegalMoves( Bitboard& bb, std::vector<move>& mvs )
 {
-	std::vector<move> mvs;
+  mvs.clear();
+  mvs.reserve(64);
+
+	/*std::vector<move> mvs;*/
 	const bool isWhitesTurn = bb.IsWhitesTurn();
 	ui64 pawns, bishops, rooks, queens, knights, king, opponent, self, opponentOrEp;
 	ui64 empty = (bb.PiecesAt(PieceType::none));
@@ -167,16 +170,17 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 					Sq::ESq to = (Sq::ESq)BitScanForward(normal);
 					normal &= (~lookup::single_bit_set[to]);
 					m.to = to;
-					m.isCapture = false;if( lookup::single_bit_set[to] & Constants::rank_8 )
+					m.isCapture = false;
+          if( lookup::single_bit_set[to] & Constants::rank_1 )
 					{
 						m.isPromotion = true;
-						m.promoted = PieceType::wqueens;
+						m.promoted = PieceType::bqueens;
 						mvs.push_back(m);
-						m.promoted = PieceType::wrooks;
+						m.promoted = PieceType::brooks;
 						mvs.push_back(m);
-						m.promoted = PieceType::wbishops;
+						m.promoted = PieceType::bbishops;
 						mvs.push_back(m);
-						m.promoted = PieceType::wknights;
+						m.promoted = PieceType::bknights;
 						mvs.push_back(m);
 					}
 					else
@@ -193,16 +197,17 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 					m.to = to;
 					m.isEp = (to == epSq);
 					m.isCapture = true;
-					m.captured = bb.PieceAtSq(to);if( lookup::single_bit_set[to] & Constants::rank_8 )
+					m.captured = bb.PieceAtSq(to);
+          if( lookup::single_bit_set[to] & Constants::rank_1 )
 					{
 						m.isPromotion = true;
-						m.promoted = PieceType::wqueens;
+						m.promoted = PieceType::bqueens;
 						mvs.push_back(m);
-						m.promoted = PieceType::wrooks;
+						m.promoted = PieceType::brooks;
 						mvs.push_back(m);
-						m.promoted = PieceType::wbishops;
+						m.promoted = PieceType::bbishops;
 						mvs.push_back(m);
-						m.promoted = PieceType::wknights;
+						m.promoted = PieceType::bknights;
 						mvs.push_back(m);
 					}
 					else
@@ -400,10 +405,10 @@ std::vector<move> GeneratePseudoLegalMoves( Bitboard& bb )
 }
 
 
-std::vector<move> GenerateLegalMoves( Bitboard& bb )
+std::vector<move>& GenerateLegalMoves( Bitboard& bb, std::vector<move>& mvs, std::vector<move>& legal )
 {
-	std::vector<move> mvs = GeneratePseudoLegalMoves(bb);
-	std::vector<move> legal, notlegal;
+	mvs = GeneratePseudoLegalMoves(bb, mvs);
+  legal.clear();
 
 	for( unsigned i=0; i<mvs.size(); ++i )
 	{
@@ -412,15 +417,69 @@ std::vector<move> GenerateLegalMoves( Bitboard& bb )
 		{
 			legal.push_back(mvs[i]);
 		}
+	}
+	return legal;
+}
+std::vector<move> GenerateIllegalMoves( Bitboard& bb, std::vector<move>& mvs, std::vector<move>& notlegal )
+{
+	mvs = GeneratePseudoLegalMoves(bb, mvs);
+  notlegal.clear();
+
+	for( unsigned i=0; i<mvs.size(); ++i )
+	{
+		Bitboard bb_local(bb);
+		if(bb_local.MakeMove(mvs[i]))
+		{
+
+		}
 		else
 		{
 			notlegal.push_back(mvs[i]);
 		}
 	}
-	return legal;
+	return notlegal;
 }
 
+int Perft( Bitboard& bb, int depth )
+{
+  std::vector<move> mvs(64);
+  int n_moves, i;
+  ui64 nodes = 0;
+ 
+  if (depth == 0) return 1;
+ 
+  mvs = GeneratePseudoLegalMoves(bb, mvs);
+  n_moves = mvs.size();
+  for (i = 0; i < n_moves; i++) 
+  {
+    Bitboard bb_local(bb);
+    move m = mvs[i];
+    bool islegal = bb_local.MakeMove(mvs[i]);
+		if(islegal)
+		{
+			nodes += Perft(bb_local,depth - 1);
+		}
+  }
+  return nodes;
+}
+std::vector< std::pair<move, int> > Divide( Bitboard& bb, int depth )
+{
+  std::vector<move> mvs;
+  std::vector< std::pair<move, int> > toReturn;
+  //int n_moves, i;
+  //ui64 nodes = 0;
 
-
-
+  //mvs = GeneratePseudoLegalMoves(bb, mvs);
+  //n_moves = mvs.size();
+  //for (i = 0; i < n_moves; i++) 
+  //{
+  //  Bitboard bb_local(bb);
+  //  move m = mvs[i];
+  //  if(bb_local.MakeMove(m))
+  //  {
+  //    toReturn.push_back(std::make_pair(m,Perft(bb_local,depth - 1)));
+  //  }
+  //}
+  return toReturn;
+}
 #endif
