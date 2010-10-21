@@ -36,7 +36,7 @@ public:
 	unsigned int halfMoveClock;
 	unsigned int fullMoveCounter;
   Sq::ESq epSquare;
-  bool castling[4];     // WK, WQ, BK, BQ
+  bool castling[CastlingRights::Total];     // WK, WQ, BK, BQ
   bool isWhitesTurn;
 public:
   Bitboard() { ClearBitboard(this); }
@@ -306,39 +306,39 @@ public:
   bool MakeMove( move m )
   {
 	  epSquare = Sq::none;
-	  if(m.isEp)
-	  {
-		  assert( m.piece == PieceType::wpawns || PieceType::bpawns );
-		  assert( (((int)m.to - (int)m.from) == 7)  || (((int)m.from - (int)m.to) == 9) ||
-				      (((int)m.to - (int)m.from) == -7) || (((int)m.from - (int)m.to) == -9) );
-		  assert( ASSERT_IsPawnBehindEpCapture(m.to) ); 
+    
+    switch( m.special )
+    {
+    case MoveType::ep:
+      {
+		    assert( m.piece == PieceType::wpawns || PieceType::bpawns );
+		    assert( (((int)m.to - (int)m.from) == 7)  || (((int)m.from - (int)m.to) == 9) ||
+				        (((int)m.to - (int)m.from) == -7) || (((int)m.from - (int)m.to) == -9) );
+		    assert( ASSERT_IsPawnBehindEpCapture(m.to) ); 
 
-		  MakeNormalMove_NoUpdate(m.piece, m.from, m.to);
-		  if(IsWhitesTurn())
-		  {
-			  pcBB[PieceType::bpawns] &= (~(S(lookup::single_bit_set[m.to])));
-		  }
-		  else
-		  {
-			  pcBB[PieceType::wpawns] &= (~(N(lookup::single_bit_set[m.to])));
-		  }
-	  }
-	  else if(m.isCapture)
-	  {
-		  if(m.isPromotion)
-		  {
-			MakeCapturePromotionMove_NoUpdate(m.piece, m.captured, m.promoted, m.from, m.to);
-		  }
-		  else
-		  {
-			MakeCaptureMove_NoUpdate(m.piece, m.captured, m.from, m.to);
-		  }
-	  }
-	  else if(m.isPromotion)
-	  {
-		  MakePromotionMove_NoUpdate(m.piece, m.promoted, m.from, m.to);
-	  }
-	  else if(m.isKingSideCastle)
+		    MakeNormalMove_NoUpdate(m.piece, m.from, m.to);
+		    if(IsWhitesTurn())
+		    {
+			    pcBB[PieceType::bpawns] &= (~(S(lookup::single_bit_set[m.to])));
+		    }
+		    else
+		    {
+			    pcBB[PieceType::wpawns] &= (~(N(lookup::single_bit_set[m.to])));
+		    }
+        break;
+      }
+    case MoveType::promotion:
+      {
+        switch( m.type )
+        {
+        case MoveType::capture:
+            MakeCapturePromotionMove_NoUpdate(m.piece, m.captured, m.promoted, m.from, m.to);
+        default: //MoveType::normal
+            MakePromotionMove_NoUpdate(m.piece, m.promoted, m.from, m.to);
+        }
+        break;
+      }
+    case MoveType::castle_kingside:
 	  {
 		  bool isLegal = IsCastleKingsideLegal();
 		  if(isWhitesTurn)
@@ -360,8 +360,8 @@ public:
 			if(isLegal) UpdateAll();
 		  return isLegal;
 	  }
-	  else if(m.isQueenSideCastle)
-	  {
+    case MoveType::castle_queenside:
+    {
 		  bool isLegal = IsCastleQueensideLegal();
 		  if(isWhitesTurn)
 		  {
@@ -381,60 +381,71 @@ public:
 			if(isLegal) UpdateAll();
 		  return isLegal;
 	  }
-	  else
-	  {
-		  MakeNormalMove_NoUpdate(m.piece, m.from, m.to);
-		  if(m.piece == PieceType::wpawns && m.to != (m.from+8))
-		  {
-			  epSquare = Sq::ESq((unsigned)m.from+8);
-		  }
-		  else if(m.piece == PieceType::bpawns && m.to != (m.from-8))
-		  {
-			  epSquare = Sq::ESq((unsigned)m.from-8);
-		  }
-	  }
-
+    default:
+      {
+        switch( m.type )
+        {
+        case MoveType::capture:
+            MakeCaptureMove_NoUpdate(m.piece, m.captured, m.from, m.to);
+            break;
+        default:
+            MakeNormalMove_NoUpdate(m.piece, m.from, m.to);
+            if(m.piece == PieceType::wpawns && m.to != (m.from+8))
+		        {
+			        epSquare = Sq::ESq((unsigned)m.from+8);
+		        }
+		        else if(m.piece == PieceType::bpawns && m.to != (m.from-8))
+		        {
+			        epSquare = Sq::ESq((unsigned)m.from-8);
+		        }
+        }
+      }
+    }
+	
 	  isWhitesTurn = !isWhitesTurn;
 
 	  UpdateAll();
 
-	  if(castling[0] || castling[1] || castling[2] || castling[3])
+    if(castling[CastlingRights::WK] || castling[CastlingRights::WQ]) 
 	  {
 		  if((PiecesAt(PieceType::wking) & lookup::single_bit_set[Sq::e1])==Constants::clear)
 		  {
-			castling[0] = false;
-			castling[1] = false;
-		  }
-		  if((PiecesAt(PieceType::bking) & lookup::single_bit_set[Sq::e8])==Constants::clear)
-		  {
-			castling[2] = false;
-			castling[3] = false;
+			castling[CastlingRights::WK] = false;
+			castling[CastlingRights::WQ] = false;
 		  }
 		  if((PiecesAt(PieceType::wrooks) & lookup::single_bit_set[Sq::h1])==Constants::clear)
 		  {
-			castling[0] = false;
+			castling[CastlingRights::WK] = false;
 		  }
 		  if((PiecesAt(PieceType::wrooks) & lookup::single_bit_set[Sq::a1])==Constants::clear)
 		  {
-			castling[1] = false;
+			castling[CastlingRights::WQ] = false;
+		  }
+    }
+    if(castling[CastlingRights::BK] || castling[CastlingRights::BQ])
+    {
+      if((PiecesAt(PieceType::bking) & lookup::single_bit_set[Sq::e8])==Constants::clear)
+		  {
+			castling[CastlingRights::BK] = false;
+			castling[CastlingRights::BQ] = false;
 		  }
 		  if((PiecesAt(PieceType::brooks) & lookup::single_bit_set[Sq::h8])==Constants::clear)
 		  {
-			castling[2] = false;
+			castling[CastlingRights::BK] = false;
 		  }
 		  if((PiecesAt(PieceType::brooks) & lookup::single_bit_set[Sq::a8])==Constants::clear)
 		  {
-			castling[3] = false;
+			castling[CastlingRights::BQ] = false;
 		  }
 	  }
 
 	  return IsLegal();
   }
 
-  bool WhiteCanCastleKingSide() const { return castling[0]; }
-  bool BlackCanCastleKingSide() const { return castling[2]; }
-  bool WhiteCanCastleQueenSide() const { return castling[1]; }
-  bool BlackCanCastleQueenSide() const { return castling[3]; }
+  bool WhiteCanCastleKingSide() const { return castling[CastlingRights::WK]; }
+  bool BlackCanCastleKingSide() const { return castling[CastlingRights::BK]; }
+  bool WhiteCanCastleQueenSide() const { return castling[CastlingRights::WQ]; }
+  bool BlackCanCastleQueenSide() const { return castling[CastlingRights::BQ]; }
 
   Sq::ESq EpSquare() const { return (epSquare); }
   void SetEpSquare(Sq::ESq sq)

@@ -9,12 +9,8 @@ struct move
 	PieceType::EPieceType captured;
 	PieceType::EPieceType promoted;
 	Sq::ESq from, to;
-	bool isEp;
-	bool isCapture;
-	bool isPromotion;
-	bool isKingSideCastle;
-	bool isQueenSideCastle;
-  short moveNum;
+  MoveType::EMoveType type;
+  MoveType::ESpecialMoveType special;
 };
 
 #endif
