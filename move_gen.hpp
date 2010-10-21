@@ -442,11 +442,11 @@ std::vector<move> GenerateIllegalMoves( Bitboard& bb, std::vector<move>& mvs, st
 	return notlegal;
 }
 
-int Perft( Bitboard& bb, int depth )
+ui64 Perft( Bitboard& bb, unsigned depth )
 {
   std::vector<move> mvs;
   mvs.reserve(64);
-  int n_moves, i;
+  unsigned n_moves, i;
   ui64 nodes = 0;
  
   if (depth == 0) return 1;
@@ -465,10 +465,10 @@ int Perft( Bitboard& bb, int depth )
   }
   return nodes;
 }
-std::vector< std::pair<move, int> > Divide( Bitboard& bb, int depth )
+std::vector< std::pair<move, ui64> > Divide( Bitboard& bb, unsigned depth )
 {
   std::vector<move> mvs;
-  std::vector< std::pair<move, int> > toReturn;
+  std::vector< std::pair<move, ui64> > toReturn;
   int n_moves, i;
   ui64 nodes = 0;
 
