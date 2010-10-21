@@ -8,6 +8,7 @@
 #include "lookup.hpp"
 #include "enums.hpp"
 #include "move.hpp"
+#include "show.hpp"
 
 
 //#include "show.hpp"
@@ -29,9 +30,9 @@ std::vector<move>& GeneratePseudoLegalMoves( Bitboard& bb, std::vector<move>& mv
 	const  Sq::ESq epSq = bb.EpSquare();
 	const ui64 epSqBB = lookup::single_bit_set[epSq];
 	/*const bool hasEp = epSq != Sq::none;*/
-	
+
 	move m;
-  m.special = MoveType::s_none;
+	//m.special = MoveType::s_none;
 	//m.isKingSideCastle = false;
 	//m.isQueenSideCastle = false;
 
@@ -84,16 +85,14 @@ std::vector<move>& GeneratePseudoLegalMoves( Bitboard& bb, std::vector<move>& mv
 	const ui64 qcnt = PopulationCount(queens ); 
 	const ui64 ncnt = PopulationCount(knights); 
 	//const ui64 kcnt = PopulationCount(king   ); 
-	
+
 	{
 		m.piece = epawns;
 		if(isWhitesTurn)
 		{
 			for(unsigned i=0; i<pcnt; ++i)
 			{
-				//m.isEp = false;
-				//m.isPromotion = false;
-        m.special = MoveType::s_none;
+				m.special = MoveType::s_none;
 
 				Sq::ESq sq = (Sq::ESq)BitScanForward(pawns);
 				m.from = sq;
@@ -103,7 +102,8 @@ std::vector<move>& GeneratePseudoLegalMoves( Bitboard& bb, std::vector<move>& mv
 				if(sq & Constants::not_rank_2)
 					normal |= WhiteDoublePawnPushTargets(sqBB, empty);
 				const ui64 norcnt    = PopulationCount(normal);
-        m.type = MoveType::normal;
+
+				m.type = MoveType::normal;
 				for(unsigned j=0; j<norcnt; ++j)
 				{
 					Sq::ESq to = (Sq::ESq)BitScanForward(normal);
@@ -111,7 +111,7 @@ std::vector<move>& GeneratePseudoLegalMoves( Bitboard& bb, std::vector<move>& mv
 					m.to = to;
 					if( lookup::single_bit_set[to] & Constants::rank_8 )
 					{
-            m.special = MoveType::promotion;
+						m.special = MoveType::promotion;
 						m.promoted = PieceType::wqueens;
 						mvs.push_back(m);
 						m.promoted = PieceType::wrooks;
@@ -123,23 +123,25 @@ std::vector<move>& GeneratePseudoLegalMoves( Bitboard& bb, std::vector<move>& mv
 					}
 					else
 					{
-            m.special = MoveType::s_none;
-					  mvs.push_back(m);
+						m.special = MoveType::s_none;
+						mvs.push_back(m);
 					}
 				}
+
 				ui64 captures = WhitePawnAnyAttacks (sqBB) &  opponentOrEp;
 				const ui64 capcnt    = PopulationCount(captures);
-        m.type = MoveType::capture;
+
+				m.type = MoveType::capture;
 				for(unsigned j=0; j<capcnt; ++j)
 				{
 					Sq::ESq to = (Sq::ESq)BitScanForward(captures);
 					captures &= (~lookup::single_bit_set[to]);
 					m.to = to;
 					m.captured = bb.PieceAtSq(to);
-          m.special = (to == epSq) ? MoveType::ep : MoveType::s_none;
+					
 					if( lookup::single_bit_set[to] & Constants::rank_8 )
 					{
-            m.special = MoveType::promotion;
+						m.special = MoveType::promotion;
 						m.promoted = PieceType::wqueens;
 						mvs.push_back(m);
 						m.promoted = PieceType::wrooks;
@@ -151,7 +153,8 @@ std::vector<move>& GeneratePseudoLegalMoves( Bitboard& bb, std::vector<move>& mv
 					}
 					else
 					{
-					  mvs.push_back(m);
+						m.special = (to == epSq) ? MoveType::ep : MoveType::s_none;
+						mvs.push_back(m);
 					}
 				}
 			}
@@ -160,7 +163,8 @@ std::vector<move>& GeneratePseudoLegalMoves( Bitboard& bb, std::vector<move>& mv
 		{
 			for(unsigned i=0; i<pcnt; ++i)
 			{
-        m.special = MoveType::s_none;
+				m.special = MoveType::s_none;
+
 				Sq::ESq sq = (Sq::ESq)BitScanForward(pawns);
 				m.from = sq;
 				const ui64 sqBB = lookup::single_bit_set[sq];
@@ -169,12 +173,14 @@ std::vector<move>& GeneratePseudoLegalMoves( Bitboard& bb, std::vector<move>& mv
 				if(sq & Constants::not_rank_7)
 					normal |= BlackDoublePawnPushTargets(sqBB, empty);
 				const ui64 norcnt    = PopulationCount(normal);
+
+				m.type = MoveType::normal;
 				for(unsigned j=0; j<norcnt; ++j)
 				{
 					Sq::ESq to = (Sq::ESq)BitScanForward(normal);
 					normal &= (~lookup::single_bit_set[to]);
 					m.to = to;
-          if( lookup::single_bit_set[to] & Constants::rank_1 )
+					if( lookup::single_bit_set[to] & Constants::rank_1 )
 					{
 						m.special = MoveType::promotion;
 						m.promoted = PieceType::bqueens;
@@ -188,23 +194,22 @@ std::vector<move>& GeneratePseudoLegalMoves( Bitboard& bb, std::vector<move>& mv
 					}
 					else
 					{
-            m.type = MoveType::normal;
-					  mvs.push_back(m);
+						m.special = MoveType::s_none;
+						mvs.push_back(m);
 					}
 				}
 				ui64 captures = BlackPawnAnyAttacks (sqBB) & opponentOrEp;
 				const ui64 capcnt    = PopulationCount(captures);
-        m.type = MoveType::capture;
+				m.type = MoveType::capture;
 				for(unsigned j=0; j<capcnt; ++j)
 				{
 					Sq::ESq to = (Sq::ESq)BitScanForward(captures);
 					captures &= (~lookup::single_bit_set[to]);
 					m.to = to;
-					m.special = (to == epSq) ? MoveType::ep : MoveType::s_none;
 					m.captured = bb.PieceAtSq(to);
-          if( lookup::single_bit_set[to] & Constants::rank_1 )
+					if( lookup::single_bit_set[to] & Constants::rank_1 )
 					{
-            m.special = MoveType::promotion;
+						m.special = MoveType::promotion;
 						m.promoted = PieceType::bqueens;
 						mvs.push_back(m);
 						m.promoted = PieceType::brooks;
@@ -216,7 +221,8 @@ std::vector<move>& GeneratePseudoLegalMoves( Bitboard& bb, std::vector<move>& mv
 					}
 					else
 					{
-					  mvs.push_back(m);
+						m.special = (to == epSq) ? MoveType::ep : MoveType::s_none;
+						mvs.push_back(m);
 					}
 				}
 			}
@@ -226,7 +232,7 @@ std::vector<move>& GeneratePseudoLegalMoves( Bitboard& bb, std::vector<move>& mv
 	//m.isEp = false;
 	//m.isPromotion = false;
 	//m.promoted = PieceType::none;
-  m.special = MoveType::s_none;
+	m.special = MoveType::s_none;
 
 	m.piece = ebishops;
 	for(unsigned i=0; i<bcnt; ++i)
@@ -239,7 +245,7 @@ std::vector<move>& GeneratePseudoLegalMoves( Bitboard& bb, std::vector<move>& mv
 		ui64 normal    = (pmvs & empty);
 		const ui64 capcnt    = PopulationCount(captures);
 		const ui64 norcnt    = PopulationCount(normal);
-    m.type = MoveType::capture;
+		m.type = MoveType::capture;
 		for(unsigned j=0; j<capcnt; ++j)
 		{
 			Sq::ESq to = (Sq::ESq)BitScanForward(captures);
@@ -379,31 +385,31 @@ std::vector<move>& GeneratePseudoLegalMoves( Bitboard& bb, std::vector<move>& mv
 		}
 		if(bb.IsWhitesTurn())
 		{
-			if( bb.WhiteCanCastleKingSide() ) 
+			if( bb.WhiteCanCastleKingSide() && bb.IsCastleKingsideLegal() ) 
 			{
 				//m.isKingSideCastle = true;
-        m.special = MoveType::castle_kingside;
+				m.special = MoveType::castle_kingside;
 				mvs.push_back(m);
-        m.special = MoveType::s_none;
+				m.special = MoveType::s_none;
 				//m.isKingSideCastle = false;
 			}
-			if( bb.WhiteCanCastleQueenSide() )
+			if( bb.WhiteCanCastleQueenSide() && bb.IsCastleQueensideLegal() )
 			{
-        m.special = MoveType::castle_queenside;
+				m.special = MoveType::castle_queenside;
 				mvs.push_back(m);
 			}
 		}
 		else
 		{
-			if( bb.BlackCanCastleKingSide() ) 
+			if( bb.BlackCanCastleKingSide() && bb.IsCastleKingsideLegal() ) 
 			{
-        m.special = MoveType::castle_kingside;
+				m.special = MoveType::castle_kingside;
 				mvs.push_back(m);
-        m.special = MoveType::s_none;
+				m.special = MoveType::s_none;
 			}
-			if( bb.BlackCanCastleQueenSide() )
+			if( bb.BlackCanCastleQueenSide() && bb.IsCastleQueensideLegal() )
 			{
-        m.special = MoveType::castle_queenside;
+				m.special = MoveType::castle_queenside;
 				mvs.push_back(m);
 			}
 		}
@@ -415,7 +421,7 @@ std::vector<move>& GeneratePseudoLegalMoves( Bitboard& bb, std::vector<move>& mv
 std::vector<move>& GenerateLegalMoves( Bitboard& bb, std::vector<move>& mvs, std::vector<move>& legal )
 {
 	mvs = GeneratePseudoLegalMoves(bb, mvs);
-  legal.clear();
+	legal.clear();
 
 	for( unsigned i=0; i<mvs.size(); ++i )
 	{
@@ -430,7 +436,7 @@ std::vector<move>& GenerateLegalMoves( Bitboard& bb, std::vector<move>& mvs, std
 std::vector<move> GenerateIllegalMoves( Bitboard& bb, std::vector<move>& mvs, std::vector<move>& notlegal )
 {
 	mvs = GeneratePseudoLegalMoves(bb, mvs);
-  notlegal.clear();
+	notlegal.clear();
 
 	for( unsigned i=0; i<mvs.size(); ++i )
 	{
@@ -449,45 +455,54 @@ std::vector<move> GenerateIllegalMoves( Bitboard& bb, std::vector<move>& mvs, st
 
 int Perft( Bitboard& bb, int depth )
 {
-  std::vector<move> mvs;
-  mvs.reserve(64);
-  int n_moves, i;
-  ui64 nodes = 0;
- 
-  if (depth == 0) return 1;
- 
-  mvs = GeneratePseudoLegalMoves(bb, mvs);
-  n_moves = mvs.size();
-  for (i = 0; i < n_moves; i++) 
-  {
-    Bitboard bb_local(bb);
-    move m = mvs[i];
-    bool islegal = bb_local.MakeMove(mvs[i]);
+	std::vector<move> mvs;
+	mvs.reserve(64);
+	int n_moves, i;
+	ui64 nodes = 0;
+
+	if (depth == 0) return 1;
+
+	mvs = GeneratePseudoLegalMoves(bb, mvs);
+	n_moves = mvs.size();
+	for (i = 0; i < n_moves; i++) 
+	{
+		/*Bitboard bb_local(bb);
+		move m = mvs[i];
+		assert(bb_local == bb);
+		bool islegal = bb_local.MakeMove(mvs[i]);
+		assert(bb_local != bb);
 		if(islegal)
 		{
 			nodes += Perft(bb_local,depth - 1);
 		}
-  }
-  return nodes;
+		bb_local.UnmakeMove();
+		assert(bb_local == bb);*/
+		if(bb.MakeMove(mvs[i]))
+		{
+			nodes += Perft(bb,depth - 1);
+		}
+		bb.UnmakeMove();
+	}
+	return nodes;
 }
 std::vector< std::pair<move, int> > Divide( Bitboard& bb, int depth )
 {
-  std::vector<move> mvs;
-  std::vector< std::pair<move, int> > toReturn;
-  int n_moves, i;
-  ui64 nodes = 0;
+	std::vector<move> mvs;
+	std::vector< std::pair<move, int> > toReturn;
+	int n_moves, i;
+	ui64 nodes = 0;
 
-  mvs = GeneratePseudoLegalMoves(bb, mvs);
-  n_moves = mvs.size();
-  for (i = 0; i < n_moves; i++) 
-  {
-    Bitboard bb_local(bb);
-    move m = mvs[i];
-    if(bb_local.MakeMove(m))
-    {
-      toReturn.push_back(std::make_pair(m,Perft(bb_local,depth - 1)));
-    }
-  }
-  return toReturn;
+	mvs = GeneratePseudoLegalMoves(bb, mvs);
+	n_moves = mvs.size();
+	for (i = 0; i < n_moves; i++) 
+	{
+		Bitboard bb_local(bb);
+		move m = mvs[i];
+		if(bb_local.MakeMove(m))
+		{
+			toReturn.push_back(std::make_pair(m,Perft(bb_local,depth - 1)));
+		}
+	}
+	return toReturn;
 }
 #endif

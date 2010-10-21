@@ -13,6 +13,8 @@
 #include "piece_attacks.hpp"
 #include "bbfunctions.hpp"
 #include "move.hpp"
+#include <stack>
+#include <vector>
 
 #include <cstring>
 
@@ -29,18 +31,56 @@ Sq::ESq SquareFromFileRank( Files::EFiles f, Ranks::ERanks r )
 
 struct Bitboard
 {
+private:
+  //Bitboard( const Bitboard& other ) {}
 public:
   BB pcBB[16];
   BB emptyBB;
   BB occupiedBB;
-	unsigned int halfMoveClock;
-	unsigned int fullMoveCounter;
+  unsigned int halfMoveClock;
+  unsigned int fullMoveCounter;
   Sq::ESq epSquare;
   bool castling[CastlingRights::Total];     // WK, WQ, BK, BQ
   bool isWhitesTurn;
+  std::vector<move> moves;
 public:
-  Bitboard() { ClearBitboard(this); }
-  Bitboard( const Bitboard& other ) { CopyBitboard( this, &other ); }
+  Bitboard() { ClearBitboard(this); moves.reserve(64); }
+  bool operator==( const Bitboard& o ) const
+  {
+	bool piecesSame = true;
+	for(unsigned int i=0; i<16; ++i)
+	{
+		piecesSame = ( piecesSame && (pcBB[i] == o.pcBB[i]) );
+	}
+	bool emptySame = emptyBB == o.emptyBB;
+	bool occSame = occupiedBB == o.occupiedBB;
+	bool hfc = halfMoveClock == o.halfMoveClock;
+	bool fmc = fullMoveCounter == o.fullMoveCounter;
+	bool eps = epSquare == o.epSquare;
+	bool csame = true;
+	for(unsigned int i=0; i<4; ++i)
+	{
+		csame = (csame && ( o.castling[i] == castling[i] ));
+	}
+	bool wsame = isWhitesTurn == o.isWhitesTurn;
+	bool ssame = moves.size() == o.moves.size();
+	bool msame = true;
+	if(ssame)
+	{
+		for(unsigned i=0; i<moves.size(); ++i)
+		{
+			msame = (msame && ( moves[i] == o.moves[i] ));
+		}
+	}
+	return piecesSame && emptySame && occSame && hfc && fmc && eps && csame && wsame && ssame && msame;
+  }
+
+  bool operator!=(const Bitboard& o ) const
+  {
+	  return !(*this == o);
+  }
+
+
 
   bool IsSqEmpty( const Sq::ESq sq ) const { return IS_TRUE(SqSetBit(sq) & emptyBB);  }
   bool IsSqOccupied( const Sq::ESq sq ) const { return IS_TRUE(SqSetBit(sq) & occupiedBB); }
@@ -105,7 +145,8 @@ public:
 	  Sq::ESq sqOfKing0;
 	  Sq::ESq sqOfKing1;
 	  Sq::ESq sqOfKing2;
-    Sq::ESq sqOfRook;
+      Sq::ESq sqOfRook;
+	  CastlingRights::ECastlingRights k,q;
 
 	  if(isWhitesTurn)
 	  {
@@ -116,7 +157,10 @@ public:
 		  sqOfKing1 =  Sq::f1 ;
 		  sqOfKing2 =  Sq::g1 ;
 
-      sqOfRook = Sq::h1;
+          sqOfRook = Sq::h1;
+
+		  k = CastlingRights::WK;
+		  q = CastlingRights::WQ;
 	  }
 	  else
 	  {
@@ -127,33 +171,21 @@ public:
 		  sqOfKing1 =  Sq::f8;
 		  sqOfKing2 =  Sq::g8;
 
-      sqOfRook = Sq::h8;
+		  sqOfRook = Sq::h8;
+		  
+		  k = CastlingRights::BK;
+		  q = CastlingRights::BQ;
 	  }
     if( (lookup::single_bit_set[sqOfKing0] & pcBB[sideToMove+PieceType::king_diff]) == Constants::clear )
     {
-      //if(isWhitesTurn)
-      //{
-      //  castling[0] = false;
-      //  castling[1] = false;
-      //}
-      //else
-      //{
-      //  castling[2] = false;
-      //  castling[3] = false;
-      //}
+	  castling[k] = false;
+	  castling[q] = false;
       return false;
     }
     
     if( (lookup::single_bit_set[sqOfRook] & pcBB[sideToMove+PieceType::rooks_diff]) == Constants::clear )
     {
-      //if(isWhitesTurn)
-      //{
-      //  castling[0] = false;
-      //}
-      //else
-      //{
-      //  castling[2] = false;
-      //}
+	  castling[k] = false;
       return false;
     }
 
@@ -207,6 +239,8 @@ public:
     Sq::ESq sqOfKing3;
     Sq::ESq sqOfRook;
 
+		  CastlingRights::ECastlingRights k,q;
+
 	  if(isWhitesTurn)
 	  {
 		  sideToMove =  PieceType::white ;
@@ -218,6 +252,9 @@ public:
           sqOfKing3 =  Sq::b1;
 
           sqOfRook = Sq::a1;
+
+		  		  k = CastlingRights::WK;
+		  q = CastlingRights::WQ;
 	  }
 	  else
 	  {
@@ -230,33 +267,21 @@ public:
 		  sqOfKing3 =  Sq::b8;
 
           sqOfRook = Sq::a8;
+
+		  		  k = CastlingRights::BK;
+		  q = CastlingRights::BQ;
 	  }
 
     if( (lookup::single_bit_set[sqOfKing0] & pcBB[sideToMove+PieceType::king_diff]) == Constants::clear )
     {
-      //if(isWhitesTurn)
-      //{
-      //  castling[0] = false;
-      //  castling[1] = false;
-      //}
-      //else
-      //{
-      //  castling[2] = false;
-      //  castling[3] = false;
-      //}
+	  castling[k] = false;
+	  castling[q] = false;
       return false;
     }
     
     if( (lookup::single_bit_set[sqOfRook] & pcBB[sideToMove+PieceType::rooks_diff]) == Constants::clear )
     {
-      //if(isWhitesTurn)
-      //{
-      //  castling[1] = false;
-      //}
-      //else
-      //{
-      //  castling[3] = false;
-      //}
+	  castling[q] = false;
       return false;
     }
 
@@ -303,8 +328,15 @@ public:
 						            ((lookup::single_bit_set[ (sq)+8 ] & pcBB[PieceType::wpawns]) != Constants::clear);
   }
 
-  bool MakeMove( move m )
+  bool MakeMove( move& m )
   {
+	m.fifty_count_before_move = halfMoveClock;
+	m.castling_before_move[0] = castling[0];
+	m.castling_before_move[1] = castling[1];
+	m.castling_before_move[2] = castling[2];
+	m.castling_before_move[3] = castling[3];
+	m.epSq_before_move = epSquare;
+
 	  epSquare = Sq::none;
     
     switch( m.special )
@@ -325,6 +357,8 @@ public:
 		    {
 			    pcBB[PieceType::wpawns] &= (~(N(lookup::single_bit_set[m.to])));
 		    }
+			halfMoveClock = 0;
+			moves.push_back(m);
         break;
       }
     case MoveType::promotion:
@@ -333,14 +367,17 @@ public:
         {
         case MoveType::capture:
             MakeCapturePromotionMove_NoUpdate(m.piece, m.captured, m.promoted, m.from, m.to);
+			break;
         default: //MoveType::normal
             MakePromotionMove_NoUpdate(m.piece, m.promoted, m.from, m.to);
         }
+		halfMoveClock = 0;
+		moves.push_back(m);
         break;
       }
     case MoveType::castle_kingside:
 	  {
-		  bool isLegal = IsCastleKingsideLegal();
+		  bool isLegal = true;//IsCastleKingsideLegal();
 		  if(isWhitesTurn)
 		  {
 			  ClearPieceAt(PieceType::wking, SqFile(Sq::e1),  SqRank(Sq::e1) );
@@ -354,15 +391,18 @@ public:
 				PutPieceAt  (PieceType::bking, SqFile(Sq::g8), SqRank(Sq::g8) );
 				ClearPieceAt(PieceType::brooks, SqFile(Sq::h8), SqRank(Sq::h8) );
 				PutPieceAt  (PieceType::brooks, SqFile(Sq::f8), SqRank(Sq::f8) );
+				++fullMoveCounter;
 		  }
+		  halfMoveClock = 0;
 			isWhitesTurn = !isWhitesTurn;
 
 			if(isLegal) UpdateAll();
+			moves.push_back(m);
 		  return isLegal;
 	  }
     case MoveType::castle_queenside:
     {
-		  bool isLegal = IsCastleQueensideLegal();
+		  bool isLegal = true;//IsCastleQueensideLegal();
 		  if(isWhitesTurn)
 		  {
 			  ClearPieceAt(PieceType::wking, SqFile(Sq::e1), SqRank(Sq::e1) );
@@ -376,9 +416,13 @@ public:
 				PutPieceAt  (PieceType::bking, SqFile(Sq::c8), SqRank(Sq::c8) );
 				ClearPieceAt(PieceType::brooks, SqFile(Sq::a8), SqRank(Sq::a8) );
 				PutPieceAt  (PieceType::brooks, SqFile(Sq::d8), SqRank(Sq::d8) );
+				++fullMoveCounter;
 		  }
-			isWhitesTurn = !isWhitesTurn;
-			if(isLegal) UpdateAll();
+		  halfMoveClock = 0;
+
+		  isWhitesTurn = !isWhitesTurn;
+		  if(isLegal) UpdateAll();
+		  moves.push_back(m);
 		  return isLegal;
 	  }
     default:
@@ -387,20 +431,27 @@ public:
         {
         case MoveType::capture:
             MakeCaptureMove_NoUpdate(m.piece, m.captured, m.from, m.to);
+			halfMoveClock = 0;
+			moves.push_back(m);
             break;
         default:
             MakeNormalMove_NoUpdate(m.piece, m.from, m.to);
             if(m.piece == PieceType::wpawns && m.to != (m.from+8))
-		        {
-			        epSquare = Sq::ESq((unsigned)m.from+8);
-		        }
-		        else if(m.piece == PieceType::bpawns && m.to != (m.from-8))
-		        {
-			        epSquare = Sq::ESq((unsigned)m.from-8);
-		        }
+		    {
+			    epSquare = Sq::ESq((unsigned)m.from+8);
+		    }
+		    else if(m.piece == PieceType::bpawns && m.to != (m.from-8))
+		    {
+			    epSquare = Sq::ESq((unsigned)m.from-8);
+		    }
+			moves.push_back(m);
         }
       }
     }
+	if(!isWhitesTurn)
+	{
+		++fullMoveCounter;
+	}
 	
 	  isWhitesTurn = !isWhitesTurn;
 
@@ -440,6 +491,112 @@ public:
 	  }
 
 	  return IsLegal();
+  }
+
+  void UnmakeMove()
+  {
+	  const move& m = moves.back();
+	  moves.pop_back();
+	  
+	  halfMoveClock = m.fifty_count_before_move;
+	  epSquare      = m.epSq_before_move;
+	  castling[0]   = m.castling_before_move[0];
+	  castling[1]   = m.castling_before_move[1];
+	  castling[2]   = m.castling_before_move[2];
+	  castling[3]   = m.castling_before_move[3];
+
+	  switch(m.special)
+	  {
+	  case MoveType::ep:
+		  {
+			MakeNormalMove_NoUpdate(m.piece, m.to, m.from);
+			if(IsWhitesTurn())
+		    {
+			    pcBB[PieceType::wpawns] |= (N(lookup::single_bit_set[m.to]));
+				--fullMoveCounter;
+		    }
+		    else
+		    {
+			    pcBB[PieceType::bpawns] |= (S(lookup::single_bit_set[m.to]));
+		    }
+		  }
+		  break;
+	  case MoveType::promotion:
+		  {
+			  switch(m.type)
+			  {
+			  case MoveType::capture:
+				  PutPieceAt(m.piece, SqFile(m.from), SqRank(m.from));
+				  PutPieceAt(m.captured, SqFile(m.to), SqRank(m.to));
+				  ClearPieceAt(m.promoted, SqFile(m.to), SqRank(m.to));
+				  break;
+			  default:
+				  PutPieceAt(m.piece, SqFile(m.from), SqRank(m.from));
+				  ClearPieceAt(m.promoted, SqFile(m.to), SqRank(m.to));
+			  }
+			  if(IsWhitesTurn()) --fullMoveCounter;
+		  }
+		  break;
+	  case MoveType::castle_kingside:
+		  {
+			  if(isWhitesTurn)
+			  {
+				  //ClearPieceAt(PieceType::bking, SqFile(Sq::g8) );
+				  //PutPieceAt  (PieceType::bking, SqFile(Sq::e8 );
+				  //ClearPieceAt(PieceType::brooks, SqFile(Sq::f8 );
+				  //PutPieceAt  (PieceType::brooks, SqFile(Sq::h8 );
+				  MakeNormalMove_NoUpdate(PieceType::bking, Sq::g8, Sq::e8);
+				  MakeNormalMove_NoUpdate(PieceType::brooks, Sq::f8, Sq::h8);
+				  --fullMoveCounter;
+			  }
+			  else
+			  {
+				  //ClearPieceAt(PieceType::wking, SqFile(Sq::g1 );
+				  //PutPieceAt  (PieceType::wking, SqFile(Sq::e1 );
+				  //ClearPieceAt(PieceType::wrooks, SqFile(Sq::f1 );
+				  //PutPieceAt  (PieceType::wrooks, SqFile(Sq::h1 );
+				  MakeNormalMove_NoUpdate(PieceType::wking, Sq::g1, Sq::e1);
+				  MakeNormalMove_NoUpdate(PieceType::wrooks, Sq::f1, Sq::h1);
+			  }
+		  }
+		  break;
+	  case MoveType::castle_queenside:
+		  {
+			  if(isWhitesTurn)
+			  {
+				  //ClearPieceAt(PieceType::bking, SqFile(Sq::c8 );
+				  //PutPieceAt  (PieceType::bking, SqFile(Sq::e8 );
+				  //ClearPieceAt(PieceType::brooks, SqFile(Sq::d8  );
+				  //PutPieceAt  (PieceType::brooks, SqFile(Sq::a8 );
+				  MakeNormalMove_NoUpdate(PieceType::bking, Sq::c8, Sq::e8);
+				  MakeNormalMove_NoUpdate(PieceType::brooks, Sq::d8, Sq::a8);
+				  --fullMoveCounter;
+			  }
+			  else
+			  {
+				  //ClearPieceAt(PieceType::wking, SqFile(Sq::c1 );
+				  //PutPieceAt  (PieceType::wking, Sq::e1 );
+				  //ClearPieceAt(PieceType::wrooks, Sq::d1  );
+				  //PutPieceAt  (PieceType::wrooks, Sq::a1 );
+				  MakeNormalMove_NoUpdate(PieceType::wking, Sq::c1, Sq::e1);
+				  MakeNormalMove_NoUpdate(PieceType::wrooks, Sq::d1, Sq::a1);
+			  }
+		  }
+		  break;
+	  default:
+		  switch(m.type)
+		  {
+		  case MoveType::capture:
+			  MakeNormalMove_NoUpdate(m.piece, m.to, m.from);
+			  PutPieceAt(m.captured, m.to);
+			  break;
+		  default:
+			  MakeNormalMove_NoUpdate(m.piece, m.to, m.from);
+		  }
+		  if(IsWhitesTurn()) --fullMoveCounter;
+	  }
+	  isWhitesTurn = !isWhitesTurn;
+	  UpdateAll();
   }
 
   bool WhiteCanCastleKingSide() const { return castling[CastlingRights::WK]; }
@@ -555,7 +712,7 @@ public:
     ClearPieceAt(p, SqFile(from), SqRank(from));
     ClearPieceAt(c, toFile, toRank);
     PutPieceAt(n, toFile, toRank);
-    UpdateAll();
+    //UpdateAll();
   }
   void MakeCapturePromotionMove( const PieceType::EPieceType p, const PieceType::EPieceType c, const PieceType::EPieceType n, const Sq::ESq from, const Sq::ESq to )
   {
@@ -626,7 +783,8 @@ public:
     assert( If_IsTrue( (PieceColor(p)==Color::black), (SqSetBit(to)&Constants::rank_1) ) );
     assert( !IsPawn(n) );
     assert( !IsKing(n) );
-    assert( PieceAtSq(from) == p );
+	PieceType::EPieceType pas = PieceAtSq(from);
+    assert( pas == p );
   }
   void ASSERTS_MakeCaptureMove( const PieceType::EPieceType p, const PieceType::EPieceType c, const Sq::ESq from, const Sq::ESq to )
   {
