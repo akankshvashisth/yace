@@ -88,6 +88,25 @@ namespace ValueType
   };
 }
 
+namespace MoveType
+{
+  enum EMoveType
+  {
+    normal,
+    capture,
+    m_none
+  };
+
+  enum ESpecialMoveType
+  {
+    ep,
+    promotion,
+    castle_kingside,
+    castle_queenside,
+    s_none
+  };
+}
+
 namespace Values
 {
   enum EValues
@@ -98,6 +117,18 @@ namespace Values
     value_infinite      = 30001,
     value_none          = 30002,
     value_ensure_signed = -1
+  };
+}
+
+namespace CastlingRights
+{
+  enum ECastlingRights
+  {
+    WK = 0, 
+    WQ = 1, 
+    BK = 2, 
+    BQ = 3,
+    Total
   };
 }
 
