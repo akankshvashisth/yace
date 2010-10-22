@@ -19,17 +19,28 @@ void RunPerft(const std::string& fen, int depth, int iters, ui64 value)
 	w.startTimer();
 	for(unsigned int i=0; i<iters; ++i)
 	{
-		sum += Perft(b,depth);
+    PerftHelper ph;
+		sum += Perft(b,depth,0, ph);
+    //std::cout <<"ph.mates             "<< ph.mates             << std::endl;
+    //std::cout <<"ph.captures          "<< ph.captures          << std::endl;
+    //std::cout <<"ph.count             "<< ph.count             << std::endl;
+    //std::cout <<"ph.ep                "<< ph.ep                << std::endl;
+    //std::cout <<"ph.stalemates        "<< ph.stalemates        << std::endl;
+    //std::cout <<"ph.promotions        "<< ph.promotions        << std::endl;
+    //std::cout <<"ph.castle_kingsides  "<< ph.castle_kingsides  << std::endl;
+    //std::cout <<"ph.castle_queensides "<< ph.castle_queensides << std::endl;
 	}
 	w.stopTimer();
 	std::string dpt = to_string(depth);
 	std::string num = to_string(sum/iters);
 	std::string avg = to_string(sum/w.getElapsedTime());
 	Show<ShowTypes::Console>::Op(std::string("Depth: ")+dpt);
-    Show<ShowTypes::Console>::Op(num);
-    Show<ShowTypes::Console>::Op((unsigned)value);
+    std::cout << sum << std::endl;;
+    std::cout << value << std::endl;
+	std::cout << (sum == value) << std::endl;
 	Show<ShowTypes::Console>::Op(w.getElapsedTime()/iters);
 	Show<ShowTypes::Console>::Op(avg);
+
 	if((sum/iters) != value)
 		Show<ShowTypes::Console>::Op("XXXXXXXXXXXXXXXXXXXXXXXXX");
 	Show<ShowTypes::Console>::Op("----------------------");
@@ -91,60 +102,78 @@ int main()
 
 	init_all();
 	
-	bool RunPerfts = true;
+	bool RunPerfts = false;
 
-	if(RunPerfts)
+	if(1)
   {
     const std::string fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-	RunPerft(fen, 1, 10000, 20);
-	RunPerft(fen, 2, 1000, 400);
-	RunPerft(fen, 3, 500, 8902);
-	RunPerft(fen, 4, 10, 197281);
+	//RunPerft(fen, 1, 1, 20);
+	//RunPerft(fen, 2, 1, 400);
+	//RunPerft(fen, 3, 1, 8902);
+	//RunPerft(fen, 4, 1, 197281);
 	RunPerft(fen, 5, 1, 4865609);
 	//RunPerft(fen, 6, 1, 119060324);
   }
-  if(RunPerfts)
+  if(1)
+  {
+    const std::string fen("4k3/8/4P3/8/8/8/8/4K3 w KQkq - 0 1");
+	//RunPerft(fen, 1, 1, 20);
+	//RunPerft(fen, 2, 1, 400);
+	//RunPerft(fen, 3, 1, 8902);
+	//RunPerft(fen, 4, 1, 197281);
+	//RunPerft(fen, 5, 1, 4865609);
+    //RunPerft(fen, 8, 1, 10000000000000);
+	//RunPerft(fen, 2, 1,  195314821);
+	//RunPerft(fen, 3, 1,  195314821);
+	//RunPerft(fen, 4, 1,  195314821);
+	//RunPerft(fen, 5, 1,  195314821);
+	//RunPerft(fen, 6, 1,  195314821);
+	//RunPerft(fen, 7, 1,  195314821);
+	//RunPerft(fen, 8, 1,  195314821);
+    RunPerft(fen, 11, 1,  195314821);
+  }
+  if(0)
   {
     const std::string fen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
-	RunPerft(fen, 1, 10000, 48);
-	RunPerft(fen, 2, 1000, 2039);
-	RunPerft(fen, 3, 500, 97862);
-	RunPerft(fen, 4, 10, 4085603);
+	//RunPerft(fen, 1, 1, 48);
+	//RunPerft(fen, 2, 1, 2039);
+	//RunPerft(fen, 3, 1, 97862);
+	//RunPerft(fen, 4, 1, 4085603);
 	RunPerft(fen, 5, 1, 193690690);
-	//RunPerft(fen, 6, 1, 8031647685);
+	RunPerft(fen, 6, 1, 8031647685);
 
   }
   if(RunPerfts)
   {
     const std::string fen("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1");
-	RunPerft(fen, 1, 10000, 14);
-	RunPerft(fen, 2, 1000, 191);
-	RunPerft(fen, 3, 500, 2812);
-	RunPerft(fen, 4, 10, 43238);
-	RunPerft(fen, 5, 1, 674624);
+	//RunPerft(fen, 1, 1, 14);
+	//RunPerft(fen, 2, 1, 191);
+	//RunPerft(fen, 3, 1, 2812);
+	//RunPerft(fen, 4, 1, 43238);
+	//RunPerft(fen, 5, 1, 674624);
 	//RunPerft(fen, 6, 1, 11030083);
   }
   if(RunPerfts)
   {
     const std::string fen("8/3K4/2p5/p2b2r1/5k2/8/8/1q6 b - - 1 67");
-	RunPerft(fen, 1, 10000, 50);
-	RunPerft(fen, 2, 1000, 279);
+	//RunPerft(fen, 1, 1, 50);
+	//RunPerft(fen, 2, 1, 279);
   }
-    if(RunPerfts)
+    if(1)
   {
     const std::string fen("n1n5/PPPk4/8/8/8/8/4Kppp/5N1N b - - 0 1");
 
-	RunPerft(fen, 1, 10000, 24);
-	RunPerft(fen, 2, 1000, 496);
-	RunPerft(fen, 3, 500, 9483);
-	RunPerft(fen, 4, 10, 182838);
-	RunPerft(fen, 5, 1, 3605103);
+	RunPerft(fen, 1, 1, 24);
+	RunPerft(fen, 2, 1, 496);
+	RunPerft(fen, 3, 1, 9483);
+	RunPerft(fen, 4, 1, 182838);
+	//RunPerft(fen, 5, 1, 3605103);
 	//RunPerft(fen, 6, 1, 71179139);
   }
   if(RunPerfts)
   {
     const std::string fen("rnbqkb1r/ppppp1pp/7n/4Pp2/8/8/PPPP1PPP/RNBQKBNR w KQkq f6 0 3");
-	RunPerft(fen, 5, 1, 11139762);
+	//RunPerft(fen, 5, 1, 11139762);
   }
     if(RunPerfts)
   {

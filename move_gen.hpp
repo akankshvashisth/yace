@@ -18,8 +18,8 @@
 
 std::vector<move>& GeneratePseudoLegalMoves( Bitboard& bb, std::vector<move>& mvs )
 {
-  mvs.clear();
-  mvs.reserve(64);
+	mvs.clear();
+	mvs.reserve(64);
 
 	/*std::vector<move> mvs;*/
 	const bool isWhitesTurn = bb.IsWhitesTurn();
@@ -138,7 +138,7 @@ std::vector<move>& GeneratePseudoLegalMoves( Bitboard& bb, std::vector<move>& mv
 					captures &= (~lookup::single_bit_set[to]);
 					m.to = to;
 					m.captured = bb.PieceAtSq(to);
-					
+
 					if( lookup::single_bit_set[to] & Constants::rank_8 )
 					{
 						m.special = MoveType::promotion;
@@ -453,45 +453,99 @@ std::vector<move> GenerateIllegalMoves( Bitboard& bb, std::vector<move>& mvs, st
 	return notlegal;
 }
 
-int Perft( Bitboard& bb, int depth )
+struct PerftHelper
 {
-	std::vector<move> mvs;
-	mvs.reserve(64);
-	int n_moves, i;
+	PerftHelper():
+mates               (0), 
+	captures            (0), 
+	count               (0), 
+	ep                  (0), 
+	stalemates          (0), 
+	promotions          (0), 
+	castle_kingsides    (0), 
+	castle_queensides   (0)
+{}
+ui64 mates, captures, count, ep, stalemates, promotions, castle_kingsides, castle_queensides;
+};
+
+ui64 Perft( Bitboard& bb, int depth, int current_depth, PerftHelper& ph )
+{
+	//std::vector<move> mvs;
+	//mvs.reserve(64);
+	ui64 n_moves, i;
 	ui64 nodes = 0;
 
-	if (depth == 0) return 1;
+	if (depth == 0) 
+	{
+		//switch(bb.moves.back().special)
+		//{
+		//case MoveType::ep:
+		//	++(ph.ep);
+		//	break;
+		//case MoveType::promotion:
+		//	++(ph.promotions);
+		//	break;
+		//case MoveType::castle_kingside:
+		//	++(ph.castle_kingsides);
+		//	break;
+		//case MoveType::castle_queenside:
+		//	++(ph.castle_queensides);
+		//	break;
+		//}
 
-	mvs = GeneratePseudoLegalMoves(bb, mvs);
-	n_moves = mvs.size();
+		//switch(bb.moves.back().type)
+		//{
+		//case MoveType::capture:
+		//	++(ph.captures);
+		//	break;
+		//}
+
+		//++(ph.count);
+
+		////std::vector<move> legalMoves, mvs;
+		////GenerateLegalMoves(bb, legalMoves, mvs);
+		////if(legalMoves.empty())
+		////{
+		////	bb.IsKingInCheck() ? ++(ph.mates) : ++(ph.stalemates);
+		////}
+
+		return 1;
+	}
+
+	GeneratePseudoLegalMoves(bb, bb.moves_arr[current_depth]);
+	n_moves = bb.moves_arr[current_depth].size();
+
 	for (i = 0; i < n_moves; i++) 
 	{
-		/*Bitboard bb_local(bb);
-		move m = mvs[i];
-		assert(bb_local == bb);
-		bool islegal = bb_local.MakeMove(mvs[i]);
-		assert(bb_local != bb);
-		if(islegal)
+		if(bb.MakeMove(bb.moves_arr[current_depth][i]))
 		{
-			nodes += Perft(bb_local,depth - 1);
-		}
-		bb_local.UnmakeMove();
-		assert(bb_local == bb);*/
-		if(bb.MakeMove(mvs[i]))
-		{
-			nodes += Perft(bb,depth - 1);
+			nodes += Perft(bb,depth - 1, current_depth + 1, ph);
+			//std::vector<move> legalMoves, mvs;
+			//GenerateLegalMoves(bb, legalMoves, mvs);
+			//if(legalMoves.empty())
+			//{
+			//	bb.IsKingInCheck() ? ++(ph.mates) : ++(ph.stalemates);
+			//}
 		}
 		bb.UnmakeMove();
 	}
+
+	//if(nodes==0)
+	//{
+	//	bb.IsKingInCheck() ? ++(ph.mates) : ++(ph.stalemates);
+	//}
+
+
 	return nodes;
 }
 std::vector< std::pair<move, int> > Divide( Bitboard& bb, int depth )
 {
 	std::vector<move> mvs;
 	std::vector< std::pair<move, int> > toReturn;
-	int n_moves, i;
+	ui64 n_moves, i;
 	ui64 nodes = 0;
 
+	PerftHelper ph;
 	mvs = GeneratePseudoLegalMoves(bb, mvs);
 	n_moves = mvs.size();
 	for (i = 0; i < n_moves; i++) 
@@ -500,7 +554,7 @@ std::vector< std::pair<move, int> > Divide( Bitboard& bb, int depth )
 		move m = mvs[i];
 		if(bb_local.MakeMove(m))
 		{
-			toReturn.push_back(std::make_pair(m,Perft(bb_local,depth - 1)));
+			toReturn.push_back(std::make_pair(m,Perft(bb_local,depth - 1, 0, ph)));
 		}
 	}
 	return toReturn;

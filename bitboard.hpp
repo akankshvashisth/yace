@@ -43,6 +43,7 @@ public:
   bool castling[CastlingRights::Total];     // WK, WQ, BK, BQ
   bool isWhitesTurn;
   std::vector<move> moves;
+  std::vector<move> moves_arr[Constants::max_depth];
 public:
   Bitboard() { ClearBitboard(this); moves.reserve(64); }
   bool operator==( const Bitboard& o ) const
@@ -495,7 +496,7 @@ public:
 
   void UnmakeMove()
   {
-	  const move& m = moves.back();
+	  move m = moves.back();
 	  moves.pop_back();
 	  
 	  halfMoveClock = m.fifty_count_before_move;
