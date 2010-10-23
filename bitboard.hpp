@@ -42,10 +42,10 @@ public:
   Sq::ESq epSquare;
   bool castling[CastlingRights::Total];     // WK, WQ, BK, BQ
   bool isWhitesTurn;
-  std::vector<move> moves;
-  std::vector<move> moves_arr[Constants::max_depth];
+  move_array<Constants::max_game_length> moves;
+  move_array<Constants::max_moves_per_position> moves_arr[Constants::max_depth];
 public:
-  Bitboard() { ClearBitboard(this); moves.reserve(64); }
+  Bitboard() { ClearBitboard(this); /*moves.reserve(64);*/ }
   bool operator==( const Bitboard& o ) const
   {
 	bool piecesSame = true;
@@ -496,8 +496,7 @@ public:
 
   void UnmakeMove()
   {
-	  move m = moves.back();
-	  moves.pop_back();
+	  move& m = moves.back();
 	  
 	  halfMoveClock = m.fifty_count_before_move;
 	  epSquare      = m.epSq_before_move;
@@ -597,6 +596,7 @@ public:
 		  if(IsWhitesTurn()) --fullMoveCounter;
 	  }
 	  isWhitesTurn = !isWhitesTurn;
+	  moves.pop_back();
 	  UpdateAll();
   }
 
@@ -618,7 +618,7 @@ public:
   void IncrementHalfMoveClock() { ++halfMoveClock; }
   void IncrementFullMoveCounter() { ++fullMoveCounter; }
 
-  ui64 PiecesAt( const PieceType::EPieceType p ) const { return pcBB[p]; }
+  const ui64& PiecesAt( const PieceType::EPieceType p ) const { return pcBB[p]; }
   PieceType::EPieceType PieceAtSq( const Sq::ESq sq ) const
   {
     const BB square = SqSetBit(sq);
@@ -814,6 +814,9 @@ inline void CopyBitboard( Bitboard& dst, const Bitboard& src ){ memcpy( &dst, &s
 inline void CopyBitboard( Bitboard* dst, const Bitboard* src ){ memcpy( dst, src, sizeof(Bitboard) ); }
 
 inline void ClearBitboard( Bitboard* b ){ memset( b, 0, sizeof(Bitboard) ); }
+
+
+static Bitboard gBitboard;
 
 #endif
 
