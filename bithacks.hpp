@@ -3,6 +3,8 @@
 
 #include "typedefs.hpp"
 #include "defines.hpp"
+#include <intrin.h>
+#include <xmmintrin.h>
 
 //////////////////////////////////////////////////////////////////////////////
 //#pragma warning( push )
@@ -73,8 +75,8 @@ unsigned popCount (ui64 x) //Pretty close to best for sparse! possibly very usef
 }
 
 ///////////////////////////////////////////////////////////////
-unsigned char popCountOf256Bytes[256];
-unsigned short popCountOfShorts65536[65536];
+static unsigned char popCountOf256Bytes[256];
+static unsigned short popCountOfShorts65536[65536];
 
 void initpopCountOfByte256()
 {
@@ -180,6 +182,18 @@ int popCount7 (ui64 x, ui64 y, ui64 z) {
 }
 
 //////////////////////////////////////////////////////////////////
+//
+//#pragma intrinsic(__m64_popcnt)
+//
+//int popCount8(ui64 x)
+//{
+//    __m64 m, result;
+//    m.m64_u64 = x;
+//    result = __m64_popcnt(m);
+//    return result.m64_u64;
+//}
+
+//////////////////////////////////////////////////////////////////
 
 ui64 odd(ui64 x, ui64 y, ui64 z) {return x^y^z;}
 ui64 maj(ui64 x, ui64 y, ui64 z) {return ((x^y)&z)|(x&y);}
@@ -276,7 +290,7 @@ const int index64_DeBruijn[64] =
 #pragma warning( push )
 #pragma warning( disable : 146 ) //compiler will add 4000
 #endif
-unsigned bitScanForward_DeBruijn(ui64 bb)
+inline unsigned bitScanForward_DeBruijn(ui64 bb)
 {
    static const ui64 debruijn64(0x07EDD5E59A4E28C2ULL);
    assert (bb != 0);
@@ -286,6 +300,22 @@ unsigned bitScanForward_DeBruijn(ui64 bb)
 #if defined(_MSC_VER)
 #pragma warning( pop )
 #endif
+
+inline unsigned bitScanForward_02(ui64 bb)
+{
+   unsigned long idx = 0;
+   assert (bb != 0);
+   _BitScanForward64(&idx, bb);
+   return (unsigned)idx;
+}
+
+inline unsigned bitScanReverse_02(ui64 bb)
+{
+   unsigned long idx = 0;
+   assert (bb != 0);
+   _BitScanReverse64(&idx, bb);
+   return (unsigned)idx;
+}
 
 /**
  * bitScanReverse
@@ -310,6 +340,33 @@ unsigned bitScanReverse_01(ui64 bb)
    } ud;
    ud.d = (double)(bb & ~(bb >> 32));  // avoid rounding error
    return ud.exponent - 1023;
+}
+
+/**
+ * Flip a bitboard vertically about the centre ranks.
+ * Rank 1 is mapped to rank 8 and vice versa.
+ * @param x any bitboard
+ * @return bitboard x flipped vertically
+ */
+inline ui64 flipVertical_01(ui64 x) 
+{
+   const ui64 k1 = ui64(0x00FF00FF00FF00FF);
+   const ui64 k2 = ui64(0x0000FFFF0000FFFF);
+   x = ((x >>  8) & k1) | ((x & k1) <<  8);
+   x = ((x >> 16) & k2) | ((x & k2) << 16);
+   x = ( x >> 32)       | ( x       << 32);
+   return x;
+}
+
+/**
+ * Flip a bitboard vertically about the centre ranks.
+ * Rank 1 is mapped to rank 8 and vice versa.
+ * @param x any bitboard
+ * @return bitboard x flipped vertically
+ */
+inline ui64 flipVertical_02(ui64 x) 
+{
+   return _byteswap_uint64(x);
 }
 
 

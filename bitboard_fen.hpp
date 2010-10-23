@@ -8,10 +8,11 @@
 #include <sstream>
 #include "strings.hpp"
 
-Bitboard BitboardFromFen( const std::string& fen )
+Bitboard& BitboardFromFen( const std::string& fen )
 {
   const FEN::BoardRepresentation& br = FEN::FenParser(fen);
-  Bitboard bb;
+  Bitboard& bb = gBitboard;
+  ClearBitboard(&bb);
   for(unsigned int i=0; i<64; ++i)
   {
     const char c = br.board[i];

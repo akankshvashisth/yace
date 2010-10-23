@@ -6,13 +6,15 @@
 #include "chessutils.hpp"
 #include "bbfunctions.hpp"
 #include "constants.hpp"
+#include "bithacks.hpp"
 //#include "show.hpp"
 
 ui64 rankMask(int sq) {return  ui64(0xff) << (sq & 56);}
  
 ui64 fileMask(int sq) {return ui64(0x0101010101010101) << (sq & 7);}
  
-ui64 diagonalMask(int sq) {
+ui64 diagonalMask(int sq) 
+{
    const ui64 maindia = ui64(0x8040201008040201);
    int diag =8*(sq & 7) - (sq & 56);
    int nort = -diag & ( diag >> 31);
@@ -20,7 +22,8 @@ ui64 diagonalMask(int sq) {
    return (maindia >> sout) << nort;
 }
  
-ui64 antiDiagMask(int sq) {
+ui64 antiDiagMask(int sq) 
+{
    const ui64 maindia = ui64(0x0102040810204080);
    int diag =56- 8*(sq&7) - (sq&56);
    int nort = -diag & ( diag >> 31);
@@ -170,6 +173,9 @@ void init_arr_direction_attacks()
 
 void init_all()
 {
+    initpopCountOfShorts65536();
+    initpopCountOfByte256();
+
 	init_arr_single_bit_set();
 	init_arr_king_moves();
 	init_arr_knight_moves();

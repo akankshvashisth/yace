@@ -26,7 +26,7 @@
 //}
 
  
-ui64 getPositiveRayAttacks(ui64 occupied, Dir::EDir dir8, Sq::ESq square) 
+inline ui64 getPositiveRayAttacks(const ui64& occupied, const Dir::EDir& dir8, Sq::ESq square) 
 {
    ui64 attacks = lookup::direction_attacks[dir8][square];
    ui64 blocker = attacks & occupied;
@@ -37,7 +37,7 @@ ui64 getPositiveRayAttacks(ui64 occupied, Dir::EDir dir8, Sq::ESq square)
    return attacks;
 }
 
-ui64 getNegativeRayAttacks(ui64 occupied, Dir::EDir dir8, Sq::ESq square) 
+inline ui64 getNegativeRayAttacks(const ui64& occupied, const Dir::EDir& dir8, Sq::ESq square) 
 {
 //	Show<ShowTypes::Console>::Op(occupied);
    ui64 attacks = lookup::direction_attacks[dir8][square];
@@ -50,17 +50,17 @@ ui64 getNegativeRayAttacks(ui64 occupied, Dir::EDir dir8, Sq::ESq square)
    return attacks;
 }
 
-inline ui64 GetFrontRayAttacks(ui64 occupied, Dir::EDir dir8, Sq::ESq square) 
+inline ui64 GetFrontRayAttacks(const ui64& occupied, const Dir::EDir& dir8, Sq::ESq square) 
 {
 	return getPositiveRayAttacks(occupied, dir8, square);
 }
 
-inline ui64 GetBackRayAttacks(ui64 occupied, Dir::EDir dir8, Sq::ESq square) 
+inline ui64 GetBackRayAttacks(const ui64& occupied, const Dir::EDir& dir8, Sq::ESq square) 
 {
 	return getNegativeRayAttacks(occupied, dir8, square);
 }
 
-inline ui64 BishopAttacks(ui64 occupied, Sq::ESq sq)
+inline ui64 BishopAttacks(const ui64& occupied, Sq::ESq sq)
 {
 	ui64 attacks = Constants::clear;
 	attacks |= GetFrontRayAttacks( occupied, Dir::NW, sq );
@@ -72,7 +72,7 @@ inline ui64 BishopAttacks(ui64 occupied, Sq::ESq sq)
 
 
 
-inline ui64 RookAttacks(ui64 occupied, Sq::ESq sq)
+inline ui64 RookAttacks(const ui64& occupied, Sq::ESq sq)
 {
 	ui64 attacks = Constants::clear;
 //	Show<ShowTypes::Console>::Op(attacks);
@@ -92,7 +92,7 @@ inline ui64 RookAttacks(ui64 occupied, Sq::ESq sq)
 	return attacks;
 }
 
-inline ui64 QueenAttacks(ui64 occupied, Sq::ESq sq)
+inline ui64 QueenAttacks(const ui64& occupied, Sq::ESq sq)
 {
 	return BishopAttacks(occupied, sq) | RookAttacks(occupied, sq);
 }

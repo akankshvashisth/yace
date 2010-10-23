@@ -13,6 +13,7 @@ bool IsPopulationCount_G_1( const ui64 x ){ return ( x & (x-1) ) != 0; }
 inline ui64 RotL(ui64 x, int s){ return rotateLeft(x,s); }
 inline ui64 RotR(ui64 x, int s){ return rotateRight(x,s); }
 
+inline ui64 FlipVertical(ui64 x){ return flipVertical_02(x); }
 
 inline ui64 GenShift(ui64 x, int s){ return genShiftBranchless(x,s); }
 
@@ -26,7 +27,7 @@ inline void ToggleBit( ui64& x, ui64 n ){ x ^= SingleBitSet(n); }
 inline unsigned PopulationCount (ui64 x){ return popCount(x); }
 inline unsigned HammingDistance (ui64 a, ui64 b) {return PopulationCount( a ^ b);}
 
-inline unsigned BitScanForward(ui64 x){ return bitScanForward_DeBruijn(x); }
-inline unsigned BitScanReverse(ui64 x){ return bitScanReverse_01(x); }
+inline unsigned BitScanForward(ui64 x){ return bitScanForward_02(x); }//return bitScanForward_DeBruijn(x); }
+inline unsigned BitScanReverse(ui64 x){ return bitScanReverse_02(x); }
 
 #endif

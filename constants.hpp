@@ -63,7 +63,9 @@ namespace Constants
   static const ui64 not_main_diagonal     = ~main_diagonal;
   static const ui64 not_main_antidiagonal = ~main_antidiagonal;
 
-  static const unsigned  max_depth    = 200;
+  static const unsigned  max_depth				= 128;
+  static const unsigned  max_moves_per_position = 192;
+  static const unsigned  max_game_length        = 1024;
 }
 
 const ui64 rankBB[] =

@@ -16,10 +16,10 @@
 #include <utility>
 #include <vector>
 
-std::vector<move>& GeneratePseudoLegalMoves( Bitboard& bb, std::vector<move>& mvs )
+move_array<Constants::max_moves_per_position>& GeneratePseudoLegalMoves( Bitboard& bb, move_array<Constants::max_moves_per_position>& mvs )
 {
 	mvs.clear();
-	mvs.reserve(64);
+	//mvs.reserve(64);
 
 	/*std::vector<move> mvs;*/
 	const bool isWhitesTurn = bb.IsWhitesTurn();
@@ -418,40 +418,40 @@ std::vector<move>& GeneratePseudoLegalMoves( Bitboard& bb, std::vector<move>& mv
 }
 
 
-std::vector<move>& GenerateLegalMoves( Bitboard& bb, std::vector<move>& mvs, std::vector<move>& legal )
-{
-	mvs = GeneratePseudoLegalMoves(bb, mvs);
-	legal.clear();
-
-	for( unsigned i=0; i<mvs.size(); ++i )
-	{
-		Bitboard bb_local(bb);
-		if(bb_local.MakeMove(mvs[i]))
-		{
-			legal.push_back(mvs[i]);
-		}
-	}
-	return legal;
-}
-std::vector<move> GenerateIllegalMoves( Bitboard& bb, std::vector<move>& mvs, std::vector<move>& notlegal )
-{
-	mvs = GeneratePseudoLegalMoves(bb, mvs);
-	notlegal.clear();
-
-	for( unsigned i=0; i<mvs.size(); ++i )
-	{
-		Bitboard bb_local(bb);
-		if(bb_local.MakeMove(mvs[i]))
-		{
-
-		}
-		else
-		{
-			notlegal.push_back(mvs[i]);
-		}
-	}
-	return notlegal;
-}
+//std::vector<move>& GenerateLegalMoves( Bitboard& bb, std::vector<move>& mvs, std::vector<move>& legal )
+//{
+//	mvs = GeneratePseudoLegalMoves(bb, mvs);
+//	legal.clear();
+//
+//	for( unsigned i=0; i<mvs.size(); ++i )
+//	{
+//		Bitboard bb_local(bb);
+//		if(bb_local.MakeMove(mvs[i]))
+//		{
+//			legal.push_back(mvs[i]);
+//		}
+//	}
+//	return legal;
+//}
+//std::vector<move> GenerateIllegalMoves( Bitboard& bb, std::vector<move>& mvs, std::vector<move>& notlegal )
+//{
+//	mvs = GeneratePseudoLegalMoves(bb, mvs);
+//	notlegal.clear();
+//
+//	for( unsigned i=0; i<mvs.size(); ++i )
+//	{
+//		Bitboard bb_local(bb);
+//		if(bb_local.MakeMove(mvs[i]))
+//		{
+//
+//		}
+//		else
+//		{
+//			notlegal.push_back(mvs[i]);
+//		}
+//	}
+//	return notlegal;
+//}
 
 struct PerftHelper
 {
@@ -538,25 +538,25 @@ ui64 Perft( Bitboard& bb, int depth, int current_depth, PerftHelper& ph )
 
 	return nodes;
 }
-std::vector< std::pair<move, int> > Divide( Bitboard& bb, int depth )
-{
-	std::vector<move> mvs;
-	std::vector< std::pair<move, int> > toReturn;
-	ui64 n_moves, i;
-	ui64 nodes = 0;
-
-	PerftHelper ph;
-	mvs = GeneratePseudoLegalMoves(bb, mvs);
-	n_moves = mvs.size();
-	for (i = 0; i < n_moves; i++) 
-	{
-		Bitboard bb_local(bb);
-		move m = mvs[i];
-		if(bb_local.MakeMove(m))
-		{
-			toReturn.push_back(std::make_pair(m,Perft(bb_local,depth - 1, 0, ph)));
-		}
-	}
-	return toReturn;
-}
+//std::vector< std::pair<move, int> > Divide( Bitboard& bb, int depth )
+//{
+//	std::vector<move> mvs;
+//	std::vector< std::pair<move, int> > toReturn;
+//	ui64 n_moves, i;
+//	ui64 nodes = 0;
+//
+//	PerftHelper ph;
+//	mvs = GeneratePseudoLegalMoves(bb, mvs);
+//	n_moves = mvs.size();
+//	for (i = 0; i < n_moves; i++) 
+//	{
+//		Bitboard bb_local(bb);
+//		move m = mvs[i];
+//		if(bb_local.MakeMove(m))
+//		{
+//			toReturn.push_back(std::make_pair(m,Perft(bb_local,depth - 1, 0, ph)));
+//		}
+//	}
+//	return toReturn;
+//}
 #endif
