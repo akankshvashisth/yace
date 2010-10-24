@@ -15,6 +15,7 @@ void RunPerft(const std::string& fen, int depth, int iters, ui64 value)
 {
 	Show<ShowTypes::Console>::Op(fen);
 	Bitboard& b = BitboardFromFen(fen);
+    b.zobrists[0] = ZobristFromBitboard(b);
 	//for(int i=0; i<Constants::max_depth; ++i)
 	//	b.moves_arr[i].reserve(128);
 	aks::time::HighResStopWatch w;
@@ -145,7 +146,7 @@ int main()
 
 	init_all();
 	
-	bool RunPerfts = true;
+	bool RunPerfts = false;
 
 	if(RunPerfts)
   {
@@ -175,14 +176,14 @@ int main()
 	//RunPerft(fen, 9, 1,  195314821);
     //RunPerft(fen, 11, 1,  195314821);
   }
-  if(RunPerfts)
+  if(1)
   {
     const std::string fen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
 	//RunPerft(fen, 1, 1, 48);
 	//RunPerft(fen, 2, 1, 2039);
-	//RunPerft(fen, 3, 1, 97862);
+	RunPerft(fen, 3, 1, 97862);
 	//RunPerft(fen, 4, 1, 4085603);
-	RunPerft(fen, 5, 1, 193690690);
+	//RunPerft(fen, 5, 1, 193690690);
 	//RunPerft(fen, 6, 1, 8031647685);
 
   }

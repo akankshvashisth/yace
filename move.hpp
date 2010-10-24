@@ -44,6 +44,33 @@ struct move_array
 	unsigned int msize;
 };
 
+template< unsigned N >
+struct zob_array
+{
+    const ui64& back() const { return key[msize-1]; }
+	      ui64& back()       { return key[msize-1]; }
+    void push_back( const ui64& m )
+	{  
+		key[msize] = m; 
+		++msize; 
+		assert(msize < N);
+	}
+	unsigned size() const { return msize; }
+	void pop_back()
+	{
+		--msize;
+		assert(msize >= 0);
+	}
+	const ui64& operator[]( unsigned i ) const { return key[i]; }
+	      ui64& operator[]( unsigned i )       { return key[i]; }
+	void clear()
+	{
+		msize = 0;
+	}
+    ui64 key[N];
+    unsigned int msize;
+};
+
 bool operator==( const move& o, const move& a )
 {
 	return (a.piece == o.piece) &&
