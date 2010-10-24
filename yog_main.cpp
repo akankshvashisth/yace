@@ -8,6 +8,8 @@
 #include "piece_attacks.hpp"
 #include "move_gen.hpp"
 #include "hiResTime.hpp"
+#include "init.hpp"
+#include "bitboard_zobrist.hpp"
 
 void RunPerft(const std::string& fen, int depth, int iters, ui64 value)
 {
@@ -47,6 +49,65 @@ void RunPerft(const std::string& fen, int depth, int iters, ui64 value)
 		Show<ShowTypes::Console>::Op("XXXXXXXXXXXXXXXXXXXXXXXXX");
 	Show<ShowTypes::Console>::Op("----------------------");
 
+}
+
+void RunZobTest(const std::string& fen, int iters)
+{
+    Bitboard& b = BitboardFromFen(fen);
+    ui64 zob_original = ZobristFromBitboard(b);
+    
+    //move m;
+    //m.special = MoveType::s_none;
+    //m.type = MoveType::normal;
+    //m.piece = PieceType::wpawns;
+    //m.from = Sq::e2;
+    //m.to = Sq::e3;
+    //m.epSq_before_move = Sq::none;
+    //m.castling_before_move[0] = true;
+    //m.castling_before_move[1] = true;
+    //m.castling_before_move[2] = true;
+    //m.castling_before_move[3] = true;
+    //m.fifty_count_before_move = 0;
+
+    //bool leg = b.MakeMove(m);
+
+    //ui64 zobNew = ZobristFromBitboard(b);
+    //ui64 zobUpdated = zob_original;
+    //UpdateZobristFromMove(zobUpdated, m, b);
+
+    //Show<ShowTypes::Console>::Op( (zobNew == zobUpdated)? "Yes" : "No" );
+
+    //int i=0;
+
+    ui64 n_moves;
+    bool go_on = true;
+    for(int i=0; i<iters; ++i)
+    {
+        if(go_on)
+        {
+            GeneratePseudoLegalMoves(b, b.moves_arr[i]);
+            n_moves = b.moves_arr[i].size();
+            for(int j=0; j<n_moves; ++j)
+            {
+                ui64 n = j;//(n_moves-1)%Random<ui64>();
+                move m = b.moves_arr[i][n];
+                if(b.MakeMove(m))
+                {
+                    ui64 zob_now = ZobristFromBitboard(b);
+                    UpdateZobristFromMove(zob_original, m, b);
+                    Show<ShowTypes::Console>::Op( (zob_now == zob_original)? "Yes" : "No" );
+                    Show<ShowTypes::Console>::Op( b );
+                    Show<ShowTypes::Console>::Op( FenFromBitboard(b) );
+                    break;
+                }
+                else
+                {
+                    go_on = false;
+                    break;
+                }
+            }
+        }
+    }
 }
 
 int main()
@@ -106,19 +167,19 @@ int main()
 
 	init_all();
 	
-	bool RunPerfts = true;
+	bool RunPerfts = false;
 
 	if(RunPerfts)
   {
     const std::string fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-	RunPerft(fen, 1, 1, 20);
-	RunPerft(fen, 2, 1, 400);
-	RunPerft(fen, 3, 1, 8902);
-	RunPerft(fen, 4, 1, 197281);
+	//RunPerft(fen, 1, 1, 20);
+	//RunPerft(fen, 2, 1, 400);
+	//RunPerft(fen, 3, 1, 8902);
+	//RunPerft(fen, 4, 1, 197281);
 	RunPerft(fen, 5, 1, 4865609);
-	RunPerft(fen, 6, 1, 119060324);
+	//RunPerft(fen, 6, 1, 119060324);
   }
-  if(0)
+  if(RunPerfts)
   {
     const std::string fen("4k3/8/4P3/8/8/8/8/4K3 w KQkq - 0 1");
 	//RunPerft(fen, 1, 1, 20);
@@ -139,40 +200,40 @@ int main()
   if(RunPerfts)
   {
     const std::string fen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
-	RunPerft(fen, 1, 1, 48);
-	RunPerft(fen, 2, 1, 2039);
-	RunPerft(fen, 3, 1, 97862);
-	RunPerft(fen, 4, 1, 4085603);
+	//RunPerft(fen, 1, 1, 48);
+	//RunPerft(fen, 2, 1, 2039);
+	//RunPerft(fen, 3, 1, 97862);
+	//RunPerft(fen, 4, 1, 4085603);
 	RunPerft(fen, 5, 1, 193690690);
-	RunPerft(fen, 6, 1, 8031647685);
+	//RunPerft(fen, 6, 1, 8031647685);
 
   }
   if(RunPerfts)
   {
     const std::string fen("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1");
-	RunPerft(fen, 1, 1, 14);
-	RunPerft(fen, 2, 1, 191);
-	RunPerft(fen, 3, 1, 2812);
-	RunPerft(fen, 4, 1, 43238);
+	//RunPerft(fen, 1, 1, 14);
+	//RunPerft(fen, 2, 1, 191);
+	//RunPerft(fen, 3, 1, 2812);
+	//RunPerft(fen, 4, 1, 43238);
 	RunPerft(fen, 5, 1, 674624);
-	RunPerft(fen, 6, 1, 11030083);
+	//RunPerft(fen, 6, 1, 11030083);
   }
   if(RunPerfts)
   {
     const std::string fen("8/3K4/2p5/p2b2r1/5k2/8/8/1q6 b - - 1 67");
-	RunPerft(fen, 1, 1, 50);
-	RunPerft(fen, 2, 1, 279);
+	//RunPerft(fen, 1, 1, 50);
+	//RunPerft(fen, 2, 1, 279);
   }
     if(RunPerfts)
   {
     const std::string fen("n1n5/PPPk4/8/8/8/8/4Kppp/5N1N b - - 0 1");
 
-	RunPerft(fen, 1, 1, 24);
-	RunPerft(fen, 2, 1, 496);
-	RunPerft(fen, 3, 1, 9483);
-	RunPerft(fen, 4, 1, 182838);
+	//RunPerft(fen, 1, 1, 24);
+	//RunPerft(fen, 2, 1, 496);
+	//RunPerft(fen, 3, 1, 9483);
+	//RunPerft(fen, 4, 1, 182838);
 	RunPerft(fen, 5, 1, 3605103);
-	RunPerft(fen, 6, 1, 71179139);
+	//RunPerft(fen, 6, 1, 71179139);
   }
   if(RunPerfts)
   {
@@ -182,9 +243,11 @@ int main()
     if(RunPerfts)
   {
     const std::string fen("8/7p/p5pb/4k3/P1pPn3/8/P5PP/1rB2RK1 b - d3 0 28");
-	RunPerft(fen, 6, 1, 38633283);
+	//RunPerft(fen, 6, 1, 38633283);
   }
 
+    //RunZobTest("4k3/8/8/8/8/8/4P3/4K3 w KQkq - 0 1", 10);
+    RunZobTest("r1bqkb1r/5ppp/p1np1n2/3Np1B1/1p2P3/NP6/P1P2PPP/R2QKB1R b KQkq - 0 11", 10);
 
     return 0;
 }

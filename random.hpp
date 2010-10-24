@@ -2,6 +2,7 @@
 #define __random_hpp
 
 #include "typedefs.hpp"
+#include <cassert>
 
 //Stockfish random gen used.
  namespace Random_Detail
@@ -82,8 +83,9 @@
      {
        int kk;
 
-       if (mti == N+1)           // If init_genrand() has not been called,
-         InitRandomGen(5489UL); // a default initial seed is used.
+       //if (mti == N+1)           // If init_genrand() has not been called,
+       //  InitRandomGen(5489UL); // a default initial seed is used.
+       assert(mti != (N+1));
 
        for (kk = 0; kk < N-M; kk++)
        {

@@ -62,7 +62,7 @@ Bitboard& BitboardFromFen( const std::string& fen )
 
 
 
-std::string FenFromBitboard( Bitboard b )
+std::string FenFromBitboard( Bitboard& b )
 {
   const std::string sempty("");
   const std::string space(" ");

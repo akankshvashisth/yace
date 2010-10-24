@@ -27,7 +27,7 @@ inline void ToggleBit( ui64& x, ui64 n ){ x ^= SingleBitSet(n); }
 inline unsigned PopulationCount (ui64 x){ return popCount(x); }
 inline unsigned HammingDistance (ui64 a, ui64 b) {return PopulationCount( a ^ b);}
 
-inline unsigned BitScanForward(ui64 x){ return bitScanForward_02(x); }//return bitScanForward_DeBruijn(x); }
-inline unsigned BitScanReverse(ui64 x){ return bitScanReverse_02(x); }
+inline unsigned BitScanForward_bsf(ui64 x){ return bitScanForward_02(x); }//return bitScanForward_DeBruijn(x); }
+inline unsigned BitScanReverse_bsr(ui64 x){ return bitScanReverse_02(x); }
 
 #endif
