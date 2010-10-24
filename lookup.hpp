@@ -39,6 +39,7 @@ ui64 antiDiagMaskEx(int sq) {return (ui64(1) << sq) ^ antiDiagMask(sq);}
 namespace lookup
 {
 	static ui64 single_bit_set[64];
+    static ui64 not_single_bit_set[64];
 
 	static ui64 knight_moves[64];
 	static ui64 king_moves[64];
@@ -57,7 +58,10 @@ namespace lookup
 void init_arr_single_bit_set()
 {
 	for(unsigned i=0; i<64; ++i)
+    {
 		lookup::single_bit_set[i] = ui64(1)<<i;
+        lookup::not_single_bit_set[i] = (~(lookup::single_bit_set[i]));
+    }
 }
 
 void init_arr_pawn_attacks()
@@ -171,21 +175,8 @@ void init_arr_direction_attacks()
 	}
 }
 
-void init_all()
-{
-    initpopCountOfShorts65536();
-    initpopCountOfByte256();
-
-	init_arr_single_bit_set();
-	init_arr_king_moves();
-	init_arr_knight_moves();
-	init_arr_rook_moves();
-	init_arr_bishop_moves();
-	init_arr_queen_moves();
-	init_arr_direction_attacks();
-	init_arr_pawn_attacks();
-}
-
 
 
 #endif
+
+

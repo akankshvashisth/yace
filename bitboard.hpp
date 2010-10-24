@@ -93,7 +93,7 @@ public:
 	  PieceType::EPieceType sideToMove = isWhitesTurn? PieceType::white : PieceType::black;
 	  PieceType::EPieceType opponent   = isWhitesTurn? PieceType::black : PieceType::white;
 
-	  const Sq::ESq sqOfKing =  (Sq::ESq)BitScanForward(pcBB[sideToMove+PieceType::king_diff]);
+	  const Sq::ESq sqOfKing =  (Sq::ESq)BitScanForward_bsf(pcBB[sideToMove+PieceType::king_diff]);
 
 	  opPawns     = pcBB[opponent+PieceType::pawns_diff];
 	  opKnights   = pcBB[opponent+PieceType::knights_diff];
@@ -118,7 +118,7 @@ public:
 	  PieceType::EPieceType sideToMove = isWhitesTurn? PieceType::white : PieceType::black;
 	  PieceType::EPieceType opponent   = isWhitesTurn? PieceType::black : PieceType::white;
 
-	  const Sq::ESq sqOfKing =  (Sq::ESq)BitScanForward(pcBB[opponent+PieceType::king_diff]);
+	  const Sq::ESq sqOfKing =  (Sq::ESq)BitScanForward_bsf(pcBB[opponent+PieceType::king_diff]);
 
 	  pawns     = pcBB[sideToMove+PieceType::pawns_diff];
 	  knights   = pcBB[sideToMove+PieceType::knights_diff];
@@ -338,7 +338,7 @@ public:
 	m.castling_before_move[3] = castling[3];
 	m.epSq_before_move = epSquare;
 
-	  epSquare = Sq::none;
+	epSquare = Sq::none;
     
     switch( m.special )
     {

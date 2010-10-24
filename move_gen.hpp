@@ -94,7 +94,7 @@ move_array<Constants::max_moves_per_position>& GeneratePseudoLegalMoves( Bitboar
 			{
 				m.special = MoveType::s_none;
 
-				Sq::ESq sq = (Sq::ESq)BitScanForward(pawns);
+				Sq::ESq sq = (Sq::ESq)BitScanForward_bsf(pawns);
 				m.from = sq;
 				const ui64 sqBB = lookup::single_bit_set[sq];
 				pawns &= (~sqBB);
@@ -106,8 +106,8 @@ move_array<Constants::max_moves_per_position>& GeneratePseudoLegalMoves( Bitboar
 				m.type = MoveType::normal;
 				for(unsigned j=0; j<norcnt; ++j)
 				{
-					Sq::ESq to = (Sq::ESq)BitScanForward(normal);
-					normal &= (~lookup::single_bit_set[to]);
+					Sq::ESq to = (Sq::ESq)BitScanForward_bsf(normal);
+					normal &= (lookup::not_single_bit_set[to]);
 					m.to = to;
 					if( lookup::single_bit_set[to] & Constants::rank_8 )
 					{
@@ -134,8 +134,8 @@ move_array<Constants::max_moves_per_position>& GeneratePseudoLegalMoves( Bitboar
 				m.type = MoveType::capture;
 				for(unsigned j=0; j<capcnt; ++j)
 				{
-					Sq::ESq to = (Sq::ESq)BitScanForward(captures);
-					captures &= (~lookup::single_bit_set[to]);
+					Sq::ESq to = (Sq::ESq)BitScanForward_bsf(captures);
+					captures &= (lookup::not_single_bit_set[to]);
 					m.to = to;
 					m.captured = bb.PieceAtSq(to);
 
@@ -165,7 +165,7 @@ move_array<Constants::max_moves_per_position>& GeneratePseudoLegalMoves( Bitboar
 			{
 				m.special = MoveType::s_none;
 
-				Sq::ESq sq = (Sq::ESq)BitScanForward(pawns);
+				Sq::ESq sq = (Sq::ESq)BitScanForward_bsf(pawns);
 				m.from = sq;
 				const ui64 sqBB = lookup::single_bit_set[sq];
 				pawns &= (~sqBB);
@@ -177,8 +177,8 @@ move_array<Constants::max_moves_per_position>& GeneratePseudoLegalMoves( Bitboar
 				m.type = MoveType::normal;
 				for(unsigned j=0; j<norcnt; ++j)
 				{
-					Sq::ESq to = (Sq::ESq)BitScanForward(normal);
-					normal &= (~lookup::single_bit_set[to]);
+					Sq::ESq to = (Sq::ESq)BitScanForward_bsf(normal);
+					normal &= (lookup::not_single_bit_set[to]);
 					m.to = to;
 					if( lookup::single_bit_set[to] & Constants::rank_1 )
 					{
@@ -203,8 +203,8 @@ move_array<Constants::max_moves_per_position>& GeneratePseudoLegalMoves( Bitboar
 				m.type = MoveType::capture;
 				for(unsigned j=0; j<capcnt; ++j)
 				{
-					Sq::ESq to = (Sq::ESq)BitScanForward(captures);
-					captures &= (~lookup::single_bit_set[to]);
+					Sq::ESq to = (Sq::ESq)BitScanForward_bsf(captures);
+					captures &= (lookup::not_single_bit_set[to]);
 					m.to = to;
 					m.captured = bb.PieceAtSq(to);
 					if( lookup::single_bit_set[to] & Constants::rank_1 )
@@ -237,9 +237,9 @@ move_array<Constants::max_moves_per_position>& GeneratePseudoLegalMoves( Bitboar
 	m.piece = ebishops;
 	for(unsigned i=0; i<bcnt; ++i)
 	{
-		Sq::ESq sq = (Sq::ESq)BitScanForward(bishops);
+		Sq::ESq sq = (Sq::ESq)BitScanForward_bsf(bishops);
 		m.from = sq;
-		bishops &= (~lookup::single_bit_set[sq]);
+		bishops &= (lookup::not_single_bit_set[sq]);
 		const ui64 pmvs = BishopAttacks(bb.PiecesAt(PieceType::all), sq);
 		ui64 captures  = pmvs & opponent;
 		ui64 normal    = (pmvs & empty);
@@ -248,8 +248,8 @@ move_array<Constants::max_moves_per_position>& GeneratePseudoLegalMoves( Bitboar
 		m.type = MoveType::capture;
 		for(unsigned j=0; j<capcnt; ++j)
 		{
-			Sq::ESq to = (Sq::ESq)BitScanForward(captures);
-			captures &= (~lookup::single_bit_set[to]);
+			Sq::ESq to = (Sq::ESq)BitScanForward_bsf(captures);
+			captures &= (lookup::not_single_bit_set[to]);
 			m.to = to;
 			m.captured = bb.PieceAtSq(to);
 			mvs.push_back(m);
@@ -257,8 +257,8 @@ move_array<Constants::max_moves_per_position>& GeneratePseudoLegalMoves( Bitboar
 		m.type = MoveType::normal;
 		for(unsigned j=0; j<norcnt; ++j)
 		{
-			Sq::ESq to = (Sq::ESq)BitScanForward(normal);
-			normal &= (~lookup::single_bit_set[to]);
+			Sq::ESq to = (Sq::ESq)BitScanForward_bsf(normal);
+			normal &= (lookup::not_single_bit_set[to]);
 			m.to = to;
 			mvs.push_back(m);
 		}
@@ -267,9 +267,9 @@ move_array<Constants::max_moves_per_position>& GeneratePseudoLegalMoves( Bitboar
 	m.piece = erooks;
 	for(unsigned i=0; i<rcnt; ++i)
 	{
-		Sq::ESq sq = (Sq::ESq)BitScanForward(rooks);
+		Sq::ESq sq = (Sq::ESq)BitScanForward_bsf(rooks);
 		m.from = sq;
-		rooks &= (~lookup::single_bit_set[sq]);
+		rooks &= (lookup::not_single_bit_set[sq]);
 		const ui64 pmvs = RookAttacks(bb.PiecesAt(PieceType::all), sq);
 		ui64 captures  = pmvs & opponent;
 		ui64 normal    = (pmvs & empty);
@@ -278,8 +278,8 @@ move_array<Constants::max_moves_per_position>& GeneratePseudoLegalMoves( Bitboar
 		m.type = MoveType::capture;
 		for(unsigned j=0; j<capcnt; ++j)
 		{
-			Sq::ESq to = (Sq::ESq)BitScanForward(captures);
-			captures &= (~lookup::single_bit_set[to]);
+			Sq::ESq to = (Sq::ESq)BitScanForward_bsf(captures);
+			captures &= (lookup::not_single_bit_set[to]);
 			m.to = to;
 			m.captured = bb.PieceAtSq(to);
 			mvs.push_back(m);
@@ -287,8 +287,8 @@ move_array<Constants::max_moves_per_position>& GeneratePseudoLegalMoves( Bitboar
 		m.type = MoveType::normal;
 		for(unsigned j=0; j<norcnt; ++j)
 		{
-			Sq::ESq to = (Sq::ESq)BitScanForward(normal);
-			normal &= (~lookup::single_bit_set[to]);
+			Sq::ESq to = (Sq::ESq)BitScanForward_bsf(normal);
+			normal &= (lookup::not_single_bit_set[to]);
 			m.to = to;
 			mvs.push_back(m);
 		}
@@ -297,9 +297,9 @@ move_array<Constants::max_moves_per_position>& GeneratePseudoLegalMoves( Bitboar
 	m.piece = equeens;
 	for(unsigned i=0; i<qcnt; ++i)
 	{
-		Sq::ESq sq = (Sq::ESq)BitScanForward(queens);
+		Sq::ESq sq = (Sq::ESq)BitScanForward_bsf(queens);
 		m.from = sq;
-		queens &= (~lookup::single_bit_set[sq]);
+		queens &= (lookup::not_single_bit_set[sq]);
 		const ui64 pmvs = QueenAttacks(bb.PiecesAt(PieceType::all), sq);
 		ui64 captures  = pmvs & opponent;
 		ui64 normal    = (pmvs & empty);
@@ -308,8 +308,8 @@ move_array<Constants::max_moves_per_position>& GeneratePseudoLegalMoves( Bitboar
 		m.type = MoveType::capture;
 		for(unsigned j=0; j<capcnt; ++j)
 		{
-			Sq::ESq to = (Sq::ESq)BitScanForward(captures);
-			captures &= (~lookup::single_bit_set[to]);
+			Sq::ESq to = (Sq::ESq)BitScanForward_bsf(captures);
+			captures &= (lookup::not_single_bit_set[to]);
 			m.to = to;
 			m.captured = bb.PieceAtSq(to);
 			mvs.push_back(m);
@@ -317,8 +317,8 @@ move_array<Constants::max_moves_per_position>& GeneratePseudoLegalMoves( Bitboar
 		m.type = MoveType::normal;
 		for(unsigned j=0; j<norcnt; ++j)
 		{
-			Sq::ESq to = (Sq::ESq)BitScanForward(normal);
-			normal &= (~lookup::single_bit_set[to]);
+			Sq::ESq to = (Sq::ESq)BitScanForward_bsf(normal);
+			normal &= (lookup::not_single_bit_set[to]);
 			m.to = to;
 			mvs.push_back(m);
 		}
@@ -327,7 +327,7 @@ move_array<Constants::max_moves_per_position>& GeneratePseudoLegalMoves( Bitboar
 	m.piece = eknights;
 	for(unsigned i=0; i<ncnt; ++i)
 	{
-		Sq::ESq sq = (Sq::ESq)BitScanForward(knights);
+		Sq::ESq sq = (Sq::ESq)BitScanForward_bsf(knights);
 		m.from = sq;
 		const ui64 sqBB = lookup::single_bit_set[sq];
 		knights &= (~sqBB);
@@ -339,8 +339,8 @@ move_array<Constants::max_moves_per_position>& GeneratePseudoLegalMoves( Bitboar
 		m.type = MoveType::capture;
 		for(unsigned j=0; j<capcnt; ++j)
 		{
-			Sq::ESq to = (Sq::ESq)BitScanForward(captures);
-			captures &= (~lookup::single_bit_set[to]);
+			Sq::ESq to = (Sq::ESq)BitScanForward_bsf(captures);
+			captures &= (lookup::not_single_bit_set[to]);
 			m.to = to;
 			m.captured = bb.PieceAtSq(to);
 			mvs.push_back(m);
@@ -348,8 +348,8 @@ move_array<Constants::max_moves_per_position>& GeneratePseudoLegalMoves( Bitboar
 		m.type = MoveType::normal;
 		for(unsigned j=0; j<norcnt; ++j)
 		{
-			Sq::ESq to = (Sq::ESq)BitScanForward(normal);
-			normal &= (~lookup::single_bit_set[to]);
+			Sq::ESq to = (Sq::ESq)BitScanForward_bsf(normal);
+			normal &= (lookup::not_single_bit_set[to]);
 			m.to = to;
 			mvs.push_back(m);
 		}
@@ -358,7 +358,7 @@ move_array<Constants::max_moves_per_position>& GeneratePseudoLegalMoves( Bitboar
 	m.piece = eking;
 	//for(unsigned i=0; i<kcnt; ++i)
 	{
-		Sq::ESq sq = (Sq::ESq)BitScanForward(king);
+		Sq::ESq sq = (Sq::ESq)BitScanForward_bsf(king);
 		m.from = sq;
 		//king &= (~lookup::single_bit_set[sq]);
 		const ui64 pmvs = KingAttacks(lookup::single_bit_set[sq]);
@@ -369,8 +369,8 @@ move_array<Constants::max_moves_per_position>& GeneratePseudoLegalMoves( Bitboar
 		m.type = MoveType::capture;
 		for(unsigned j=0; j<capcnt; ++j)
 		{
-			Sq::ESq to = (Sq::ESq)BitScanForward(captures);
-			captures &= (~lookup::single_bit_set[to]);
+			Sq::ESq to = (Sq::ESq)BitScanForward_bsf(captures);
+			captures &= (lookup::not_single_bit_set[to]);
 			m.to = to;
 			m.captured = bb.PieceAtSq(to);
 			mvs.push_back(m);
@@ -378,8 +378,8 @@ move_array<Constants::max_moves_per_position>& GeneratePseudoLegalMoves( Bitboar
 		m.type = MoveType::normal;
 		for(unsigned j=0; j<norcnt; ++j)
 		{
-			Sq::ESq to = (Sq::ESq)BitScanForward(normal);
-			normal &= (~lookup::single_bit_set[to]);
+			Sq::ESq to = (Sq::ESq)BitScanForward_bsf(normal);
+			normal &= (lookup::not_single_bit_set[to]);
 			m.to = to;
 			mvs.push_back(m);
 		}
@@ -387,14 +387,14 @@ move_array<Constants::max_moves_per_position>& GeneratePseudoLegalMoves( Bitboar
 		{
 			if( bb.WhiteCanCastleKingSide() && bb.IsCastleKingsideLegal() ) 
 			{
-				//m.isKingSideCastle = true;
+                //m.to = Sq::g1;
 				m.special = MoveType::castle_kingside;
 				mvs.push_back(m);
 				m.special = MoveType::s_none;
-				//m.isKingSideCastle = false;
 			}
 			if( bb.WhiteCanCastleQueenSide() && bb.IsCastleQueensideLegal() )
 			{
+                //m.to = Sq::c1;
 				m.special = MoveType::castle_queenside;
 				mvs.push_back(m);
 			}
@@ -403,12 +403,14 @@ move_array<Constants::max_moves_per_position>& GeneratePseudoLegalMoves( Bitboar
 		{
 			if( bb.BlackCanCastleKingSide() && bb.IsCastleKingsideLegal() ) 
 			{
+                //m.to = Sq::g8;
 				m.special = MoveType::castle_kingside;
 				mvs.push_back(m);
 				m.special = MoveType::s_none;
 			}
 			if( bb.BlackCanCastleQueenSide() && bb.IsCastleQueensideLegal() )
 			{
+                //m.to = Sq::c8;
 				m.special = MoveType::castle_queenside;
 				mvs.push_back(m);
 			}

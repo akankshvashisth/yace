@@ -9,21 +9,21 @@
 
 
 
-//ui64 getForwardRayAttacks(ui64 occupied, Dir::EDir dir8, unsigned long square) 
-//{
-//   ui64 attacks    = lookup::direction_attacks[dir8][square];
-//   ui64 blocker    =  attacks & occupied;
-//   _BitScanForward64 (&square, blocker | ui64(0x8000000000000000));
-//   return attacks ^ lookup::direction_attacks[dir8][square];
-//}
-//
-//ui64 getBackwardRayAttacks(ui64 occupied, Dir::EDir dir8, unsigned long square)
-//{
-//   ui64 attacks    = lookup::direction_attacks[dir8][square];
-//   ui64 blocker    =  attacks & occupied;
-//   _BitScanReverse64 (&square, blocker | ui64(1));
-//   return attacks ^ lookup::direction_attacks[dir8][square];
-//}
+ui64 getForwardRayAttacks(ui64 occupied, Dir::EDir dir8, unsigned long square) 
+{
+   ui64 attacks    = lookup::direction_attacks[dir8][square];
+   ui64 blocker    =  attacks & occupied;
+   _BitScanForward64 (&square, blocker | ui64(0x8000000000000000));
+   return attacks ^ lookup::direction_attacks[dir8][square];
+}
+
+ui64 getBackwardRayAttacks(ui64 occupied, Dir::EDir dir8, unsigned long square)
+{
+   ui64 attacks    = lookup::direction_attacks[dir8][square];
+   ui64 blocker    =  attacks & occupied;
+   _BitScanReverse64 (&square, blocker | ui64(1));
+   return attacks ^ lookup::direction_attacks[dir8][square];
+}
 
  
 inline ui64 getPositiveRayAttacks(const ui64& occupied, const Dir::EDir& dir8, Sq::ESq square) 
@@ -31,7 +31,7 @@ inline ui64 getPositiveRayAttacks(const ui64& occupied, const Dir::EDir& dir8, S
    ui64 attacks = lookup::direction_attacks[dir8][square];
    ui64 blocker = attacks & occupied;
    if ( blocker ) {
-      square = (Sq::ESq)BitScanForward(blocker);
+      square = (Sq::ESq)BitScanForward_bsf(blocker);
       attacks ^= lookup::direction_attacks[dir8][square];
    }
    return attacks;
@@ -44,7 +44,7 @@ inline ui64 getNegativeRayAttacks(const ui64& occupied, const Dir::EDir& dir8, S
 //   Show<ShowTypes::Console>::Op(attacks);
    ui64 blocker = attacks & occupied;
    if ( blocker ) {
-      square = (Sq::ESq)BitScanReverse(blocker);
+      square = (Sq::ESq)BitScanReverse_bsr(blocker);
       attacks ^= lookup::direction_attacks[dir8][square];
    }
    return attacks;
@@ -52,12 +52,12 @@ inline ui64 getNegativeRayAttacks(const ui64& occupied, const Dir::EDir& dir8, S
 
 inline ui64 GetFrontRayAttacks(const ui64& occupied, const Dir::EDir& dir8, Sq::ESq square) 
 {
-	return getPositiveRayAttacks(occupied, dir8, square);
+	return getForwardRayAttacks(occupied, dir8, (unsigned long)square);
 }
 
 inline ui64 GetBackRayAttacks(const ui64& occupied, const Dir::EDir& dir8, Sq::ESq square) 
 {
-	return getNegativeRayAttacks(occupied, dir8, square);
+	return getBackwardRayAttacks(occupied, dir8, (unsigned long)square);
 }
 
 inline ui64 BishopAttacks(const ui64& occupied, Sq::ESq sq)
