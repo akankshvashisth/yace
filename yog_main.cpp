@@ -55,29 +55,6 @@ void RunZobTest(const std::string& fen, int iters)
 {
     Bitboard& b = BitboardFromFen(fen);
     ui64 zob_original = ZobristFromBitboard(b);
-    
-    //move m;
-    //m.special = MoveType::s_none;
-    //m.type = MoveType::normal;
-    //m.piece = PieceType::wpawns;
-    //m.from = Sq::e2;
-    //m.to = Sq::e3;
-    //m.epSq_before_move = Sq::none;
-    //m.castling_before_move[0] = true;
-    //m.castling_before_move[1] = true;
-    //m.castling_before_move[2] = true;
-    //m.castling_before_move[3] = true;
-    //m.fifty_count_before_move = 0;
-
-    //bool leg = b.MakeMove(m);
-
-    //ui64 zobNew = ZobristFromBitboard(b);
-    //ui64 zobUpdated = zob_original;
-    //UpdateZobristFromMove(zobUpdated, m, b);
-
-    //Show<ShowTypes::Console>::Op( (zobNew == zobUpdated)? "Yes" : "No" );
-
-    //int i=0;
 
     ui64 n_moves;
     bool go_on = true;
@@ -87,17 +64,18 @@ void RunZobTest(const std::string& fen, int iters)
         {
             GeneratePseudoLegalMoves(b, b.moves_arr[i]);
             n_moves = b.moves_arr[i].size();
-            for(int j=0; j<n_moves; ++j)
+            for(int j=0; j<10000; ++j)
             {
-                ui64 n = j;//(n_moves-1)%Random<ui64>();
+                ui64 n = (n_moves-1)%Random<ui64>();
                 move m = b.moves_arr[i][n];
                 if(b.MakeMove(m))
                 {
                     ui64 zob_now = ZobristFromBitboard(b);
                     UpdateZobristFromMove(zob_original, m, b);
-                    Show<ShowTypes::Console>::Op( (zob_now == zob_original)? "Yes" : "No" );
-                    Show<ShowTypes::Console>::Op( b );
-                    Show<ShowTypes::Console>::Op( FenFromBitboard(b) );
+                    if((zob_now != zob_original))
+                        Show<ShowTypes::Console>::Op( "No" );
+                    //Show<ShowTypes::Console>::Op( b );
+                    //Show<ShowTypes::Console>::Op( FenFromBitboard(b) );
                     break;
                 }
                 else
@@ -167,7 +145,7 @@ int main()
 
 	init_all();
 	
-	bool RunPerfts = false;
+	bool RunPerfts = true;
 
 	if(RunPerfts)
   {
@@ -194,7 +172,7 @@ int main()
 	//RunPerft(fen, 5, 1,  195314821);
 	//RunPerft(fen, 6, 1,  195314821);
 	//RunPerft(fen, 7, 1,  195314821);
-	RunPerft(fen, 9, 1,  195314821);
+	//RunPerft(fen, 9, 1,  195314821);
     //RunPerft(fen, 11, 1,  195314821);
   }
   if(RunPerfts)
@@ -247,7 +225,8 @@ int main()
   }
 
     //RunZobTest("4k3/8/8/8/8/8/4P3/4K3 w KQkq - 0 1", 10);
-    RunZobTest("r1bqkb1r/5ppp/p1np1n2/3Np1B1/1p2P3/NP6/P1P2PPP/R2QKB1R b KQkq - 0 11", 10);
+    //RunZobTest("r1bqkb1r/5ppp/p1np1n2/3Np1B1/1p2P3/NP6/P1P2PPP/R2QKB1R b KQkq - 0 11", 100);
+    //RunZobTest("4k3/8/8/8/8/3p4/4P3/4K3 w - - 0 1", 10);
 
     return 0;
 }
