@@ -9,6 +9,7 @@
 #include "enums.hpp"
 #include "move.hpp"
 #include "show.hpp"
+#include "bitboard_zobrist.hpp"
 
 
 //#include "show.hpp"
@@ -472,45 +473,11 @@ ui64 mates, captures, count, ep, stalemates, promotions, castle_kingsides, castl
 
 ui64 Perft( Bitboard& bb, int depth, int current_depth, PerftHelper& ph )
 {
-	//std::vector<move> mvs;
-	//mvs.reserve(64);
 	ui64 n_moves, i;
 	ui64 nodes = 0;
 
 	if (depth == 0) 
 	{
-		//switch(bb.moves.back().special)
-		//{
-		//case MoveType::ep:
-		//	++(ph.ep);
-		//	break;
-		//case MoveType::promotion:
-		//	++(ph.promotions);
-		//	break;
-		//case MoveType::castle_kingside:
-		//	++(ph.castle_kingsides);
-		//	break;
-		//case MoveType::castle_queenside:
-		//	++(ph.castle_queensides);
-		//	break;
-		//}
-
-		//switch(bb.moves.back().type)
-		//{
-		//case MoveType::capture:
-		//	++(ph.captures);
-		//	break;
-		//}
-
-		//++(ph.count);
-
-		////std::vector<move> legalMoves, mvs;
-		////GenerateLegalMoves(bb, legalMoves, mvs);
-		////if(legalMoves.empty())
-		////{
-		////	bb.IsKingInCheck() ? ++(ph.mates) : ++(ph.stalemates);
-		////}
-
 		return 1;
 	}
 
@@ -521,23 +488,20 @@ ui64 Perft( Bitboard& bb, int depth, int current_depth, PerftHelper& ph )
 	{
 		if(bb.MakeMove(bb.moves_arr[current_depth][i]))
 		{
+            bb.zobrists[current_depth+1] = bb.zobrists[current_depth];
+            UpdateZobristFromMove(bb.zobrists[current_depth+1], bb.moves_arr[current_depth][i], bb);
+            move& m = bb.moves_arr[current_depth][i];
+            ui64 zobNow = ZobristFromBitboard(bb);
+            ui64 zobUp =  bb.zobrists[current_depth+1];
+            if(zobNow != zobUp)
+            {
+                Show<ShowTypes::Console>::Op(FenFromBitboard(bb));
+                Show<ShowTypes::Console>::Op("-----");
+            }
 			nodes += Perft(bb,depth - 1, current_depth + 1, ph);
-			//std::vector<move> legalMoves, mvs;
-			//GenerateLegalMoves(bb, legalMoves, mvs);
-			//if(legalMoves.empty())
-			//{
-			//	bb.IsKingInCheck() ? ++(ph.mates) : ++(ph.stalemates);
-			//}
 		}
 		bb.UnmakeMove();
 	}
-
-	//if(nodes==0)
-	//{
-	//	bb.IsKingInCheck() ? ++(ph.mates) : ++(ph.stalemates);
-	//}
-
-
 	return nodes;
 }
 //std::vector< std::pair<move, int> > Divide( Bitboard& bb, int depth )

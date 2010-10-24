@@ -43,6 +43,7 @@ public:
   bool castling[CastlingRights::Total];     // WK, WQ, BK, BQ
   bool isWhitesTurn;
   move_array<Constants::max_game_length> moves;
+  zob_array<Constants::max_game_length> zobrists;
   move_array<Constants::max_moves_per_position> moves_arr[Constants::max_depth];
 public:
   Bitboard() { ClearBitboard(this); /*moves.reserve(64);*/ }
@@ -237,8 +238,8 @@ public:
 	  Sq::ESq sqOfKing0;
 	  Sq::ESq sqOfKing1;
 	  Sq::ESq sqOfKing2;
-    Sq::ESq sqOfKing3;
-    Sq::ESq sqOfRook;
+      Sq::ESq sqOfKing3;
+      Sq::ESq sqOfRook;
 
 		  CastlingRights::ECastlingRights k,q;
 
