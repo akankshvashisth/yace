@@ -72,14 +72,15 @@ void UpdateZobristFromMove( ui64& zob, move& m, Bitboard& b )
     {
         zob ^= Zobrist::ep_key[m.epSq_before_move];
     }
+
     if(b.EpSquare() != Sq::none)
     {
         zob ^= Zobrist::ep_key[b.EpSquare()];
     }
 
-    zob ^= Zobrist::zobrist[m.piece][m.from]; //remove piece from location
-
     zob ^= Zobrist::black_move_key; //update side to move.
+
+    zob ^= Zobrist::zobrist[m.piece][m.from]; //remove piece from location
 
     switch(m.special)
     {
@@ -92,6 +93,7 @@ void UpdateZobristFromMove( ui64& zob, move& m, Bitboard& b )
                     zob ^= Zobrist::zobrist[m.captured][m.to]; //remove captured piece.
                     zob ^= Zobrist::zobrist[m.promoted][m.to]; // put promoted piece in its place.
                 }
+                break;
             default:
                 {
                     zob ^= Zobrist::zobrist[m.promoted][m.to]; // put promoted piece in its place.
@@ -143,6 +145,7 @@ void UpdateZobristFromMove( ui64& zob, move& m, Bitboard& b )
                 zob ^= Zobrist::zobrist[m.captured][m.to]; //remove captured piece
                 zob ^= Zobrist::zobrist[m.piece][m.to]; //put the capturing piece in its place
             }
+            break;
         default:
             {
                 zob ^= Zobrist::zobrist[m.piece][m.to]; //put the moving place in place.
