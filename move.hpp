@@ -17,6 +17,16 @@ struct move
 	bool castling_before_move[CastlingRights::Total];
 };
 
+/////////////////////////////////
+
+struct move_packed
+{
+  unsigned char data[6];
+};
+
+//////////////////////////////////////////////
+
+
 template< unsigned N >
 struct move_array
 {
