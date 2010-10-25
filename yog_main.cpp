@@ -10,6 +10,7 @@
 #include "hiResTime.hpp"
 #include "init.hpp"
 #include "bitboard_zobrist.hpp"
+#include "tt.hpp"
 
 void RunPerft(const std::string& fen, int depth, int iters, ui64 value)
 {
@@ -143,10 +144,16 @@ int main()
     //Show<ShowTypes::Console>::Op(fenFromBoard);
     //Show<ShowTypes::Console>::Op(FEN::FenParser(fen));
     //Show<ShowTypes::Console>::Op(b);
+  Show<ShowTypes::Console>::Op((unsigned)sizeof(Bitboard));
+  Show<ShowTypes::Console>::Op((unsigned)sizeof(move));
+  Show<ShowTypes::Console>::Op((unsigned)sizeof(ui64));
+  Show<ShowTypes::Console>::Op((unsigned)sizeof(move_packed));
+  Show<ShowTypes::Console>::Op((unsigned)sizeof(TT_Entry));
+  Show<ShowTypes::Console>::Op((unsigned)sizeof(TT_Big_Entry));
 
 	init_all();
 	
-	bool RunPerfts = false;
+	bool RunPerfts = true;
 
 	if(RunPerfts)
   {
@@ -155,12 +162,12 @@ int main()
 	//RunPerft(fen, 2, 1, 400);
 	//RunPerft(fen, 3, 1, 8902);
 	//RunPerft(fen, 4, 1, 197281);
-	RunPerft(fen, 5, 1, 4865609);
+	//RunPerft(fen, 5, 1, 4865609);
 	//RunPerft(fen, 6, 1, 119060324);
   }
   if(RunPerfts)
   {
-    const std::string fen("4k3/8/4P3/8/8/8/8/4K3 w KQkq - 0 1");
+    const std::string fen("4k3/8/4P3/8/8/8/8/4K3 w - - 0 1");
 	//RunPerft(fen, 1, 1, 20);
 	//RunPerft(fen, 2, 1, 400);
 	//RunPerft(fen, 3, 1, 8902);
@@ -172,17 +179,17 @@ int main()
 	//RunPerft(fen, 4, 1,  195314821);
 	//RunPerft(fen, 5, 1,  195314821);
 	//RunPerft(fen, 6, 1,  195314821);
-	//RunPerft(fen, 7, 1,  195314821);
+	RunPerft(fen, 7, 1,  195314821);
 	//RunPerft(fen, 9, 1,  195314821);
     //RunPerft(fen, 11, 1,  195314821);
   }
-  if(1)
+  if(RunPerfts)
   {
     const std::string fen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
 	//RunPerft(fen, 1, 1, 48);
 	//RunPerft(fen, 2, 1, 2039);
-	RunPerft(fen, 3, 1, 97862);
-	//RunPerft(fen, 4, 1, 4085603);
+	//RunPerft(fen, 3, 1, 97862);
+	RunPerft(fen, 4, 1, 4085603);
 	//RunPerft(fen, 5, 1, 193690690);
 	//RunPerft(fen, 6, 1, 8031647685);
 
@@ -217,7 +224,7 @@ int main()
   if(RunPerfts)
   {
     const std::string fen("rnbqkb1r/ppppp1pp/7n/4Pp2/8/8/PPPP1PPP/RNBQKBNR w KQkq f6 0 3");
-	RunPerft(fen, 5, 1, 11139762);
+	  RunPerft(fen, 5, 1, 11139762);
   }
     if(RunPerfts)
   {

@@ -386,6 +386,8 @@ public:
 				PutPieceAt  (PieceType::wking, SqFile(Sq::g1), SqRank(Sq::g1) );
 				ClearPieceAt(PieceType::wrooks, SqFile(Sq::h1), SqRank(Sq::h1) );
 				PutPieceAt  (PieceType::wrooks, SqFile(Sq::f1), SqRank(Sq::f1) );
+        castling[CastlingRights::WK] = false;
+			  castling[CastlingRights::WQ] = false;
 		  }
 		  else
 		  {
@@ -393,6 +395,8 @@ public:
 				PutPieceAt  (PieceType::bking, SqFile(Sq::g8), SqRank(Sq::g8) );
 				ClearPieceAt(PieceType::brooks, SqFile(Sq::h8), SqRank(Sq::h8) );
 				PutPieceAt  (PieceType::brooks, SqFile(Sq::f8), SqRank(Sq::f8) );
+        castling[CastlingRights::BK] = false;
+			  castling[CastlingRights::BQ] = false;
 				++fullMoveCounter;
 		  }
 		  halfMoveClock = 0;
@@ -411,6 +415,8 @@ public:
 				PutPieceAt  (PieceType::wking, SqFile(Sq::c1), SqRank(Sq::c1) );
 				ClearPieceAt(PieceType::wrooks, SqFile(Sq::a1), SqRank(Sq::a1) );
 				PutPieceAt  (PieceType::wrooks, SqFile(Sq::d1), SqRank(Sq::d1) );
+        castling[CastlingRights::WK] = false;
+			  castling[CastlingRights::WQ] = false;
 		  }
 		  else
 		  {
@@ -418,6 +424,8 @@ public:
 				PutPieceAt  (PieceType::bking, SqFile(Sq::c8), SqRank(Sq::c8) );
 				ClearPieceAt(PieceType::brooks, SqFile(Sq::a8), SqRank(Sq::a8) );
 				PutPieceAt  (PieceType::brooks, SqFile(Sq::d8), SqRank(Sq::d8) );
+        castling[CastlingRights::BK] = false;
+			  castling[CastlingRights::BQ] = false;
 				++fullMoveCounter;
 		  }
 		  halfMoveClock = 0;

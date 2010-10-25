@@ -36,15 +36,6 @@ ui64 ZobristFromBitboard( Bitboard&  b )
     xorWithZobristForPieceTypeAndBitboard(b, zob, PieceType::bqueens);
     xorWithZobristForPieceTypeAndBitboard(b, zob, PieceType::bking);
 
-
-    for(unsigned i=0; i<CastlingRights::Total; ++i)
-    {
-        if(b.castling[i])
-        {
-            zob ^= Zobrist::castling_key[i];
-        }
-    }
-
     if( b.EpSquare() != Sq::none )
     {
         zob ^= Zobrist::ep_key[b.EpSquare()]; 
@@ -53,6 +44,14 @@ ui64 ZobristFromBitboard( Bitboard&  b )
     if(b.IsWhitesTurn())
     { 
         zob ^= Zobrist::black_move_key; 
+    }
+
+    for(unsigned i=0; i<CastlingRights::Total; ++i)
+    {
+        if(b.castling[i])
+        {
+            zob ^= Zobrist::castling_key[i];
+        }
     }
 
     return zob;

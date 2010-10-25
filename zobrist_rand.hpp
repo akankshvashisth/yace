@@ -9,7 +9,7 @@ namespace Zobrist
 {
     static ui64 zobrist[PieceType::none][Sq::none];
     static ui64 black_move_key;
-    static ui64 castling_key[CastlingRights::Total];
+    static ui64 castling_key[CastlingRights::Total]/* = { 1<<0,1<<8,1<<16,1<<24 }*/;
     static ui64 ep_key[Sq::none];
 }
 
