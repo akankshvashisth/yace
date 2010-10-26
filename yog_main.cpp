@@ -11,6 +11,7 @@
 #include "init.hpp"
 #include "bitboard_zobrist.hpp"
 #include "tt.hpp"
+#include "perft.hpp"
 
 void RunPerft(const std::string& fen, int depth, int iters, ui64 value)
 {
@@ -23,7 +24,7 @@ void RunPerft(const std::string& fen, int depth, int iters, ui64 value)
 	w.startTimer();
 	ui64 sum=0;
 	w.startTimer();
-	for(unsigned int i=0; i<iters; ++i)
+	for(int i=0; i<iters; ++i)
 	{
     PerftHelper ph;
 		sum += Perft(b,depth,0, ph);
@@ -58,7 +59,7 @@ void RunZobTest(const std::string& fen, int iters)
     Bitboard& b = BitboardFromFen(fen);
     ui64 zob_original = ZobristFromBitboard(b);
 
-    ui64 n_moves;
+    int n_moves;
     bool go_on = true;
     for(int i=0; i<iters; ++i)
     {
@@ -68,7 +69,7 @@ void RunZobTest(const std::string& fen, int iters)
             n_moves = b.moves_arr[i].size();
             for(int j=0; j<10000; ++j)
             {
-                ui64 n = (n_moves-1)%Random<ui64>();
+                int n = (n_moves-1)%Random<ui64>();
                 move m = b.moves_arr[i][n];
                 if(b.MakeMove(m))
                 {
@@ -163,7 +164,7 @@ int main()
 	//RunPerft(fen, 3, 1, 8902);
 	//RunPerft(fen, 4, 1, 197281);
 	//RunPerft(fen, 5, 1, 4865609);
-	//RunPerft(fen, 6, 1, 119060324);
+	RunPerft(fen, 6, 1, 119060324);
   }
   if(RunPerfts)
   {
@@ -179,8 +180,8 @@ int main()
 	//RunPerft(fen, 4, 1,  195314821);
 	//RunPerft(fen, 5, 1,  195314821);
 	//RunPerft(fen, 6, 1,  195314821);
-	RunPerft(fen, 7, 1,  195314821);
-	//RunPerft(fen, 9, 1,  195314821);
+	//RunPerft(fen, 7, 1,  195314821);
+	RunPerft(fen, 9, 1,  195314821);
     //RunPerft(fen, 11, 1,  195314821);
   }
   if(RunPerfts)
@@ -189,8 +190,8 @@ int main()
 	//RunPerft(fen, 1, 1, 48);
 	//RunPerft(fen, 2, 1, 2039);
 	//RunPerft(fen, 3, 1, 97862);
-	RunPerft(fen, 4, 1, 4085603);
-	//RunPerft(fen, 5, 1, 193690690);
+	//RunPerft(fen, 4, 1, 4085603);
+	RunPerft(fen, 5, 1, 193690690);
 	//RunPerft(fen, 6, 1, 8031647685);
 
   }

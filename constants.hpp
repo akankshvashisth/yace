@@ -68,7 +68,7 @@ namespace Constants
   static const unsigned  max_game_length        = 1024;
 }
 
-const ui64 rankBB[] =
+static const ui64 rankBB[] =
 {
   Constants::rank_1,
   Constants::rank_2,
@@ -80,7 +80,7 @@ const ui64 rankBB[] =
   Constants::rank_8
 };
 
-const ui64 fileBB[] =
+static const ui64 fileBB[] =
 {
   Constants::file_a,
   Constants::file_b,
@@ -92,6 +92,6 @@ const ui64 fileBB[] =
   Constants::file_h
 };
 
-const i64 directionShift[]={ 7, 8, 9, -1, 1 -9, -8, -7 };
+static const i64 directionShift[]={ 7, 8, 9, -1, 1 -9, -8, -7 };
 
 #endif

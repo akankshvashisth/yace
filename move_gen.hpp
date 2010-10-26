@@ -8,16 +8,14 @@
 #include "lookup.hpp"
 #include "enums.hpp"
 #include "move.hpp"
-#include "show.hpp"
 #include "bitboard_zobrist.hpp"
 
+static type_array<move, Constants::max_moves_per_position>& GeneratePseudoLegalMoves( Bitboard& bb, type_array<move, Constants::max_moves_per_position>& mvs );
+static std::vector<move>& GenerateLegalMoves( Bitboard& bb, type_array<move, Constants::max_moves_per_position>& mvs, std::vector<move>& legal );
+static std::vector<move> GenerateIllegalMoves( Bitboard& bb, type_array<move, Constants::max_moves_per_position>& mvs, std::vector<move>& notlegal );
 
-//#include "show.hpp"
 
-#include <utility>
-#include <vector>
-
-move_array<Constants::max_moves_per_position>& GeneratePseudoLegalMoves( Bitboard& bb, move_array<Constants::max_moves_per_position>& mvs )
+static type_array<move, Constants::max_moves_per_position>& GeneratePseudoLegalMoves( Bitboard& bb, type_array<move, Constants::max_moves_per_position>& mvs )
 {
 	mvs.clear();
 	//mvs.reserve(64);
@@ -420,109 +418,36 @@ move_array<Constants::max_moves_per_position>& GeneratePseudoLegalMoves( Bitboar
 	return mvs;
 }
 
-
-//std::vector<move>& GenerateLegalMoves( Bitboard& bb, std::vector<move>& mvs, std::vector<move>& legal )
-//{
-//	mvs = GeneratePseudoLegalMoves(bb, mvs);
-//	legal.clear();
-//
-//	for( unsigned i=0; i<mvs.size(); ++i )
-//	{
-//		Bitboard bb_local(bb);
-//		if(bb_local.MakeMove(mvs[i]))
-//		{
-//			legal.push_back(mvs[i]);
-//		}
-//	}
-//	return legal;
-//}
-//std::vector<move> GenerateIllegalMoves( Bitboard& bb, std::vector<move>& mvs, std::vector<move>& notlegal )
-//{
-//	mvs = GeneratePseudoLegalMoves(bb, mvs);
-//	notlegal.clear();
-//
-//	for( unsigned i=0; i<mvs.size(); ++i )
-//	{
-//		Bitboard bb_local(bb);
-//		if(bb_local.MakeMove(mvs[i]))
-//		{
-//
-//		}
-//		else
-//		{
-//			notlegal.push_back(mvs[i]);
-//		}
-//	}
-//	return notlegal;
-//}
-
-struct PerftHelper
+static std::vector<move>& GenerateLegalMoves( Bitboard& bb, type_array<move, Constants::max_moves_per_position>& mvs, std::vector<move>& legal )
 {
-	PerftHelper():
-mates               (0), 
-	captures            (0), 
-	count               (0), 
-	ep                  (0), 
-	stalemates          (0), 
-	promotions          (0), 
-	castle_kingsides    (0), 
-	castle_queensides   (0)
-{}
-ui64 mates, captures, count, ep, stalemates, promotions, castle_kingsides, castle_queensides;
-};
+	mvs = GeneratePseudoLegalMoves(bb, mvs);
+	legal.clear();
 
-ui64 Perft( Bitboard& bb, int depth, int current_depth, PerftHelper& ph )
-{
-	ui64 n_moves, i;
-	ui64 nodes = 0;
-
-	if (depth == 0) 
+	for( unsigned i=0; i<mvs.size(); ++i )
 	{
-		return 1;
-	}
-
-	GeneratePseudoLegalMoves(bb, bb.moves_arr[current_depth]);
-	n_moves = bb.moves_arr[current_depth].size();
-
-	for (i = 0; i < n_moves; i++) 
-	{
-		if(bb.MakeMove(bb.moves_arr[current_depth][i]))
+		Bitboard bb_local(bb);
+		if(bb_local.MakeMove(mvs[i]))
 		{
-            bb.zobrists[current_depth+1] = bb.zobrists[current_depth];
-            UpdateZobristFromMove(bb.zobrists[current_depth+1], bb.moves_arr[current_depth][i], bb);
-            move& m = bb.moves_arr[current_depth][i];
-            ui64 zobNow = ZobristFromBitboard(bb);
-            ui64 zobUp =  bb.zobrists[current_depth+1];
-            if(zobNow != zobUp)
-            {
-                Show<ShowTypes::Console>::Op(FenFromBitboard(bb));
-                Show<ShowTypes::Console>::Op("-----");
-            }
-			nodes += Perft(bb,depth - 1, current_depth + 1, ph);
+			legal.push_back(mvs[i]);
 		}
-		bb.UnmakeMove();
 	}
-	return nodes;
+	return legal;
 }
-//std::vector< std::pair<move, int> > Divide( Bitboard& bb, int depth )
-//{
-//	std::vector<move> mvs;
-//	std::vector< std::pair<move, int> > toReturn;
-//	ui64 n_moves, i;
-//	ui64 nodes = 0;
-//
-//	PerftHelper ph;
-//	mvs = GeneratePseudoLegalMoves(bb, mvs);
-//	n_moves = mvs.size();
-//	for (i = 0; i < n_moves; i++) 
-//	{
-//		Bitboard bb_local(bb);
-//		move m = mvs[i];
-//		if(bb_local.MakeMove(m))
-//		{
-//			toReturn.push_back(std::make_pair(m,Perft(bb_local,depth - 1, 0, ph)));
-//		}
-//	}
-//	return toReturn;
-//}
+
+static std::vector<move> GenerateIllegalMoves( Bitboard& bb, type_array<move, Constants::max_moves_per_position>& mvs, std::vector<move>& notlegal )
+{
+	mvs = GeneratePseudoLegalMoves(bb, mvs);
+	notlegal.clear();
+
+	for( unsigned i=0; i<mvs.size(); ++i )
+	{
+		Bitboard bb_local(bb);
+		if(!bb_local.MakeMove(mvs[i]))
+		{
+			notlegal.push_back(mvs[i]);
+		}
+	}
+	return notlegal;
+}
+
 #endif

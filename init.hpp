@@ -1,6 +1,7 @@
 #ifndef __init_hpp
 #define __init_hpp
 
+#include "evaluation_constants.hpp"
 #include "lookup.hpp"
 #include "bithacks.hpp"
 #include "random.hpp"
@@ -22,6 +23,7 @@ void init_all()
 	init_arr_direction_attacks();
 	init_arr_pawn_attacks();
 
+    init_eval_constants();
 
 }
 

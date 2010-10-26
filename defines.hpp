@@ -2,6 +2,7 @@
 #define __defines_hpp
 
 #include <cassert>
+#include "utility.hpp"
 
 #define DO_EVERYTHING_SAFELY
 
