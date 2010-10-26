@@ -1,12 +1,18 @@
 #ifndef __bitboard_zobrist_hpp
 #define __bitboard_zobrist_hpp
 
+#include "lookup.hpp"
 #include "bitboard.hpp"
 #include "bitfunctions.hpp"
 #include "move.hpp"
 #include "zobrist_rand.hpp"
 
-inline void xorWithZobristForPieceTypeAndBitboard( Bitboard& b, ui64& zob, PieceType::EPieceType t )
+static void xorWithZobristForPieceTypeAndBitboard( Bitboard& b, ui64& zob, PieceType::EPieceType t );
+static ui64 ZobristFromBitboard( Bitboard&  b );
+static void UpdateZobristFromMove( ui64& zob, move& m, Bitboard& b );
+
+
+static void xorWithZobristForPieceTypeAndBitboard( Bitboard& b, ui64& zob, PieceType::EPieceType t )
 {
     ui64  p = b.PiecesAt(t);
     const ui64 p_c = PopulationCount(p);
@@ -18,7 +24,7 @@ inline void xorWithZobristForPieceTypeAndBitboard( Bitboard& b, ui64& zob, Piece
     }
 }
 
-ui64 ZobristFromBitboard( Bitboard&  b )
+static ui64 ZobristFromBitboard( Bitboard&  b )
 {
     ui64 zob = 0;
 
@@ -57,7 +63,7 @@ ui64 ZobristFromBitboard( Bitboard&  b )
     return zob;
 }
 
-void UpdateZobristFromMove( ui64& zob, move& m, Bitboard& b )
+static void UpdateZobristFromMove( ui64& zob, move& m, Bitboard& b )
 {
     for(unsigned i=0; i<CastlingRights::Total; ++i)
     {

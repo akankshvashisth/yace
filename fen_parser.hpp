@@ -34,7 +34,7 @@ namespace FEN
 			e = s;
 			while (*e != 0 && strchr(delimiters, *e) == 0) ++e;
 			if (e - s > 0) {
-				op(s, e - s);
+				op(s, (unsigned)(e - s));
 			}
 			s = e + 1;
 		}

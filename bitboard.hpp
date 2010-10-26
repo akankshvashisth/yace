@@ -12,11 +12,10 @@
 #include "lookup.hpp"
 #include "piece_attacks.hpp"
 #include "bbfunctions.hpp"
-#include "move.hpp"
-#include <stack>
-#include <vector>
+#include "bitfunctions.hpp"
 
-#include <cstring>
+#include "move.hpp"
+#include "type_array.hpp"
 
 struct Bitboard;
 
@@ -24,15 +23,10 @@ inline void CopyBitboard( Bitboard& dst, const Bitboard& src );
 inline void CopyBitboard( Bitboard* dst, const Bitboard* src );
 inline void ClearBitboard( Bitboard* b );
 
-Sq::ESq SquareFromFileRank( Files::EFiles f, Ranks::ERanks r )
-{
-  return Sq::ESq((r<<3)+f);
-}
+Sq::ESq SquareFromFileRank( Files::EFiles f, Ranks::ERanks r );
 
 struct Bitboard
 {
-private:
-  //Bitboard( const Bitboard& other ) {}
 public:
   BB pcBB[16];
   BB emptyBB;
@@ -42,12 +36,86 @@ public:
   Sq::ESq epSquare;
   bool castling[CastlingRights::Total];     // WK, WQ, BK, BQ
   bool isWhitesTurn;
-  move_array<Constants::max_game_length> moves;
-  zob_array<Constants::max_game_length> zobrists;
-  move_array<Constants::max_moves_per_position> moves_arr[Constants::max_depth];
+ 
+  type_array<move, Constants::max_game_length> moves;
+  type_array<ui64, Constants::max_game_length>  zobrists;
+  type_array<move, Constants::max_moves_per_position> moves_arr[Constants::max_depth];
 public:
-  Bitboard() { ClearBitboard(this); /*moves.reserve(64);*/ }
-  bool operator==( const Bitboard& o ) const
+  Bitboard();
+  bool operator==( const Bitboard& o ) const;
+  bool operator!=(const Bitboard& o ) const;
+
+  bool IsSqEmpty( const Sq::ESq sq ) const;
+  bool IsSqOccupied( const Sq::ESq sq ) const;
+
+  BB KingAttacks();
+
+  bool IsKingInCheck();
+  bool IsLegal();
+
+  bool IsCastleKingsideLegal();
+  bool IsCastleQueensideLegal();
+
+  bool MakeMove( move& m );
+  void UnmakeMove();
+
+  bool WhiteCanCastleKingSide() const ;
+  bool BlackCanCastleKingSide() const ;
+  bool WhiteCanCastleQueenSide() const;
+  bool BlackCanCastleQueenSide() const;
+  Sq::ESq EpSquare() const;
+  void SetEpSquare(Sq::ESq sq);
+  bool IsWhitesTurn() const ;
+  unsigned HalfMoveClock() const ;
+  unsigned FullMoveCounter() const ;
+  void IncrementHalfMoveClock() ;
+  void IncrementFullMoveCounter() ;
+
+  const ui64& PiecesAt( const PieceType::EPieceType p ) const ;
+  PieceType::EPieceType PieceAtSq( const Sq::ESq sq ) const;
+  void PutPieceAt( const PieceType::EPieceType p, const Sq::ESq sq );
+  void ClearPieceAt( const PieceType::EPieceType p, const Sq::ESq sq );
+  void ClearPieceAt( const PieceType::EPieceType p, const int file, const int rank );
+  void PutPieceAt( const PieceType::EPieceType p, const int file, const int rank );
+
+  void MakeNormalMove_NoUpdate( const PieceType::EPieceType p, const Sq::ESq from, const Sq::ESq to );
+  void MakeNormalMove( const PieceType::EPieceType p, const Sq::ESq from, const Sq::ESq to );
+  void MakeCaptureMove_NoUpdate( const PieceType::EPieceType p, const PieceType::EPieceType c, const Sq::ESq from, const Sq::ESq to );
+  void MakeCaptureMove( const PieceType::EPieceType p, const PieceType::EPieceType c, const Sq::ESq from, const Sq::ESq to );
+  void MakePromotionMove_NoUpdate( const PieceType::EPieceType p, const PieceType::EPieceType n, const Sq::ESq from, const Sq::ESq to );
+  void MakePromotionMove( const PieceType::EPieceType p, const PieceType::EPieceType n, const Sq::ESq from, const Sq::ESq to );
+  void MakeCapturePromotionMove_NoUpdate( const PieceType::EPieceType p, const PieceType::EPieceType c, const PieceType::EPieceType n, const Sq::ESq from, const Sq::ESq to );
+  void MakeCapturePromotionMove( const PieceType::EPieceType p, const PieceType::EPieceType c, const PieceType::EPieceType n, const Sq::ESq from, const Sq::ESq to );
+  void UpdateWhite();
+  void UpdateBlack();
+  void UpdateOccupied();
+  void UpdateEmpty();
+  void UpdateAll();
+
+  bool ASSERT_IsPawnBehindEpCapture( Sq::ESq sq );
+  void ASSERTS_MakeCapturePromotionMove( const PieceType::EPieceType p, const PieceType::EPieceType c, const PieceType::EPieceType n, const Sq::ESq from, const Sq::ESq to );
+  void ASSERTS_MakePromotionMove( const PieceType::EPieceType p, const PieceType::EPieceType n, const Sq::ESq from, const Sq::ESq to );
+  void ASSERTS_MakeCaptureMove( const PieceType::EPieceType p, const PieceType::EPieceType c, const Sq::ESq from, const Sq::ESq to );
+  void ASSERTS_MakeNormalMove( const PieceType::EPieceType p, const Sq::ESq from, const Sq::ESq to );
+};
+
+
+//Try using X_aligned_memcpy_sse2( &dst, &src, sizeof(Bitboard) );
+inline void CopyBitboard( Bitboard& dst, const Bitboard& src ){ memcpy( &dst, &src, sizeof(Bitboard) ); }
+
+//Try using X_aligned_memcpy_sse2( dst, src, sizeof(Bitboard) );
+inline void CopyBitboard( Bitboard* dst, const Bitboard* src ){ memcpy( dst, src, sizeof(Bitboard) ); }
+
+inline void ClearBitboard( Bitboard* b ){ memset( b, 0, sizeof(Bitboard) ); }
+
+Sq::ESq SquareFromFileRank( Files::EFiles f, Ranks::ERanks r ){ return Sq::ESq((r<<3)+f); }
+
+static Bitboard gBitboard;
+
+////////////////////////////////////////////////////////////////////////////
+
+  Bitboard::Bitboard() { ClearBitboard(this); /*moves.reserve(64);*/ }
+  bool Bitboard::operator==( const Bitboard& o ) const
   {
 	bool piecesSame = true;
 	for(unsigned int i=0; i<16; ++i)
@@ -77,17 +145,17 @@ public:
 	return piecesSame && emptySame && occSame && hfc && fmc && eps && csame && wsame && ssame && msame;
   }
 
-  bool operator!=(const Bitboard& o ) const
+  bool Bitboard::operator!=(const Bitboard& o ) const
   {
 	  return !(*this == o);
   }
 
 
 
-  bool IsSqEmpty( const Sq::ESq sq ) const { return IS_TRUE(SqSetBit(sq) & emptyBB);  }
-  bool IsSqOccupied( const Sq::ESq sq ) const { return IS_TRUE(SqSetBit(sq) & occupiedBB); }
+  bool Bitboard::IsSqEmpty( const Sq::ESq sq ) const { return IS_TRUE(SqSetBit(sq) & emptyBB);  }
+  bool Bitboard::IsSqOccupied( const Sq::ESq sq ) const { return IS_TRUE(SqSetBit(sq) & occupiedBB); }
 
-  BB KingAttacks()
+  BB Bitboard::KingAttacks()
   {
 	  ui64 opPawns, opKnights, opRQ, opBQ;
 
@@ -107,12 +175,12 @@ public:
 		  	 (RookAttacks   (pcBB[PieceType::all], sqOfKing) & opRQ);
   }
 
-  bool IsKingInCheck()
+  bool Bitboard::IsKingInCheck()
   {
 	  return KingAttacks() != ui64(0);
   }
 
-  bool IsLegal()
+  bool Bitboard::IsLegal()
   {
 	  ui64 pawns, knights, RQ, BQ, king;
 
@@ -137,7 +205,7 @@ public:
 	  return !(p || k || n || b || r);
   }
 
-  bool IsCastleKingsideLegal()
+  bool Bitboard::IsCastleKingsideLegal()
   {
 	  ui64 pawns, knights, RQ, BQ, king;
 
@@ -228,7 +296,7 @@ public:
 			   r0 || r1 || r2);
   }
 
-  bool IsCastleQueensideLegal()
+  bool Bitboard::IsCastleQueensideLegal()
   {
 	  ui64 pawns, knights, RQ, BQ, king;
 
@@ -324,13 +392,13 @@ public:
 			   r0 || r1 || r2);
   }
 
-  bool ASSERT_IsPawnBehindEpCapture( Sq::ESq sq )
+  bool Bitboard::ASSERT_IsPawnBehindEpCapture( Sq::ESq sq )
   {
 	return isWhitesTurn ? ((lookup::single_bit_set[ (sq)-8 ] & pcBB[PieceType::bpawns]) != Constants::clear) :
 						            ((lookup::single_bit_set[ (sq)+8 ] & pcBB[PieceType::wpawns]) != Constants::clear);
   }
 
-  bool MakeMove( move& m )
+  bool Bitboard::MakeMove( move& m )
   {
 	m.fifty_count_before_move = halfMoveClock;
 	m.castling_before_move[0] = castling[0];
@@ -503,7 +571,7 @@ public:
 	  return IsLegal();
   }
 
-  void UnmakeMove()
+  void Bitboard::UnmakeMove()
   {
 	  move& m = moves.back();
 	  
@@ -609,26 +677,26 @@ public:
 	  UpdateAll();
   }
 
-  bool WhiteCanCastleKingSide() const { return castling[CastlingRights::WK]; }
-  bool BlackCanCastleKingSide() const { return castling[CastlingRights::BK]; }
-  bool WhiteCanCastleQueenSide() const { return castling[CastlingRights::WQ]; }
-  bool BlackCanCastleQueenSide() const { return castling[CastlingRights::BQ]; }
+  bool Bitboard::WhiteCanCastleKingSide() const { return castling[CastlingRights::WK]; }
+  bool Bitboard::BlackCanCastleKingSide() const { return castling[CastlingRights::BK]; }
+  bool Bitboard::WhiteCanCastleQueenSide() const { return castling[CastlingRights::WQ]; }
+  bool Bitboard::BlackCanCastleQueenSide() const { return castling[CastlingRights::BQ]; }
 
-  Sq::ESq EpSquare() const { return (epSquare); }
-  void SetEpSquare(Sq::ESq sq)
+  Sq::ESq Bitboard::EpSquare() const { return (epSquare); }
+  void Bitboard::SetEpSquare(Sq::ESq sq)
   {
     epSquare = sq;
   }
 
-  bool IsWhitesTurn() const { return isWhitesTurn; }
+  bool Bitboard::IsWhitesTurn() const { return isWhitesTurn; }
 
-  unsigned HalfMoveClock() const { return halfMoveClock; }
-  unsigned FullMoveCounter() const { return fullMoveCounter; }
-  void IncrementHalfMoveClock() { ++halfMoveClock; }
-  void IncrementFullMoveCounter() { ++fullMoveCounter; }
+  unsigned Bitboard::HalfMoveClock() const { return halfMoveClock; }
+  unsigned Bitboard::FullMoveCounter() const { return fullMoveCounter; }
+  void Bitboard::IncrementHalfMoveClock() { ++halfMoveClock; }
+  void Bitboard::IncrementFullMoveCounter() { ++fullMoveCounter; }
 
-  const ui64& PiecesAt( const PieceType::EPieceType p ) const { return pcBB[p]; }
-  PieceType::EPieceType PieceAtSq( const Sq::ESq sq ) const
+  const ui64& Bitboard::PiecesAt( const PieceType::EPieceType p ) const { return pcBB[p]; }
+  PieceType::EPieceType Bitboard::PieceAtSq( const Sq::ESq sq ) const
   {
     const BB square = SqSetBit(sq);
     if( IS_TRUE(square & emptyBB) )
@@ -654,37 +722,37 @@ public:
     }
     return PieceType::none;
   }
-  void PutPieceAt( const PieceType::EPieceType p, const Sq::ESq sq )
+  void Bitboard::PutPieceAt( const PieceType::EPieceType p, const Sq::ESq sq )
   {
     PutPieceAt( p, SqFile(sq), SqRank(sq) );
     UpdateAll();
   }
-  void ClearPieceAt( const PieceType::EPieceType p, const Sq::ESq sq )
+  void Bitboard::ClearPieceAt( const PieceType::EPieceType p, const Sq::ESq sq )
   {
     ClearPieceAt( p, SqFile(sq), SqRank(sq) );
     UpdateAll();
   }
-  void ClearPieceAt( const PieceType::EPieceType p, const int file, const int rank )
+  void Bitboard::ClearPieceAt( const PieceType::EPieceType p, const int file, const int rank )
   {
     pcBB[p] &= (~(fileBB[file] & rankBB[rank]));
   }
-  void PutPieceAt( const PieceType::EPieceType p, const int file, const int rank )
+  void Bitboard::PutPieceAt( const PieceType::EPieceType p, const int file, const int rank )
   {
     pcBB[p] |= ( fileBB[file] & rankBB[rank] );
   }
-  void MakeNormalMove_NoUpdate( const PieceType::EPieceType p, const Sq::ESq from, const Sq::ESq to )
+  void Bitboard::MakeNormalMove_NoUpdate( const PieceType::EPieceType p, const Sq::ESq from, const Sq::ESq to )
   {
     DO_SAFE( ASSERTS_MakeNormalMove(p,from,to) );
 
     ClearPieceAt(p, SqFile(from), SqRank(from) );
     PutPieceAt(p,  SqFile(to), SqRank(to) );
   }
-  void MakeNormalMove( const PieceType::EPieceType p, const Sq::ESq from, const Sq::ESq to )
+  void Bitboard::MakeNormalMove( const PieceType::EPieceType p, const Sq::ESq from, const Sq::ESq to )
   {
     MakeNormalMove_NoUpdate(p,from,to);
     UpdateAll();
   }
-  void MakeCaptureMove_NoUpdate( const PieceType::EPieceType p, const PieceType::EPieceType c, const Sq::ESq from, const Sq::ESq to )
+  void Bitboard::MakeCaptureMove_NoUpdate( const PieceType::EPieceType p, const PieceType::EPieceType c, const Sq::ESq from, const Sq::ESq to )
   {
     DO_SAFE( ASSERTS_MakeCaptureMove(p,c,from,to) );
 
@@ -695,24 +763,24 @@ public:
     ClearPieceAt(c, toFile, toRank);
     PutPieceAt(p, toFile, toRank);
   }
-  void MakeCaptureMove( const PieceType::EPieceType p, const PieceType::EPieceType c, const Sq::ESq from, const Sq::ESq to )
+  void Bitboard::MakeCaptureMove( const PieceType::EPieceType p, const PieceType::EPieceType c, const Sq::ESq from, const Sq::ESq to )
   {
 	MakeCaptureMove_NoUpdate(p,c,from,to);
     UpdateAll();
   }
-  void MakePromotionMove_NoUpdate( const PieceType::EPieceType p, const PieceType::EPieceType n, const Sq::ESq from, const Sq::ESq to )
+  void Bitboard::MakePromotionMove_NoUpdate( const PieceType::EPieceType p, const PieceType::EPieceType n, const Sq::ESq from, const Sq::ESq to )
   {
     DO_SAFE( ASSERTS_MakePromotionMove(p,n,from,to) ) ;
 
     ClearPieceAt(p, SqFile(from), SqRank(from));
     PutPieceAt(n,  SqFile(to), SqRank(to) );
   }
-  void MakePromotionMove( const PieceType::EPieceType p, const PieceType::EPieceType n, const Sq::ESq from, const Sq::ESq to )
+  void Bitboard::MakePromotionMove( const PieceType::EPieceType p, const PieceType::EPieceType n, const Sq::ESq from, const Sq::ESq to )
   {
     MakePromotionMove_NoUpdate(p, n, from, to);
     UpdateAll();
   }
-  void MakeCapturePromotionMove_NoUpdate( const PieceType::EPieceType p, const PieceType::EPieceType c, const PieceType::EPieceType n, const Sq::ESq from, const Sq::ESq to )
+  void Bitboard::MakeCapturePromotionMove_NoUpdate( const PieceType::EPieceType p, const PieceType::EPieceType c, const PieceType::EPieceType n, const Sq::ESq from, const Sq::ESq to )
   {
     DO_SAFE( ASSERTS_MakeCapturePromotionMove(p,c,n,from,to) );
 
@@ -724,12 +792,12 @@ public:
     PutPieceAt(n, toFile, toRank);
     //UpdateAll();
   }
-  void MakeCapturePromotionMove( const PieceType::EPieceType p, const PieceType::EPieceType c, const PieceType::EPieceType n, const Sq::ESq from, const Sq::ESq to )
+  void Bitboard::MakeCapturePromotionMove( const PieceType::EPieceType p, const PieceType::EPieceType c, const PieceType::EPieceType n, const Sq::ESq from, const Sq::ESq to )
   {
     MakeCapturePromotionMove_NoUpdate(p,c,n,from,to);
     UpdateAll();
   }
-  void UpdateWhite()
+  void Bitboard::UpdateWhite()
   {
     pcBB[PieceType::white] = Constants::clear;
     for( unsigned i=Ranges::wBegin; i<Ranges::wEnd; ++i )
@@ -738,7 +806,7 @@ public:
       pcBB[PieceType::white] |= pcBB[i];
     }
   }
-  void UpdateBlack()
+  void Bitboard::UpdateBlack()
   {
     pcBB[PieceType::black] = Constants::clear;
     for( unsigned i=Ranges::bBegin; i<Ranges::bEnd; ++i )
@@ -747,20 +815,20 @@ public:
       pcBB[PieceType::black] |= pcBB[i];
     }
   }
-  void UpdateOccupied()
+  void Bitboard::UpdateOccupied()
   {
     assert( (pcBB[PieceType::black] & pcBB[PieceType::white]) == Constants::clear ); //No overlap
     DO_SAFE(occupiedBB = Constants::clear);
     occupiedBB = (pcBB[PieceType::black] | pcBB[PieceType::white]);
 	pcBB[PieceType::all] = occupiedBB;
   }
-  void UpdateEmpty()
+  void Bitboard::UpdateEmpty()
   {
     DO_SAFE(emptyBB = Constants::clear);
     emptyBB = ~occupiedBB;
 	pcBB[PieceType::none] = emptyBB;
   }
-  void UpdateAll()
+  void Bitboard::UpdateAll()
   {
     UpdateWhite();
     UpdateBlack();
@@ -768,7 +836,7 @@ public:
     UpdateEmpty();
   }
 
-  void ASSERTS_MakeCapturePromotionMove( const PieceType::EPieceType p, const PieceType::EPieceType c, const PieceType::EPieceType n, const Sq::ESq from, const Sq::ESq to )
+  void Bitboard::ASSERTS_MakeCapturePromotionMove( const PieceType::EPieceType p, const PieceType::EPieceType c, const PieceType::EPieceType n, const Sq::ESq from, const Sq::ESq to )
   {
     assert( IsSqOccupied(to) );
     assert( IsSqOccupied(from) );
@@ -785,7 +853,7 @@ public:
     assert( !IsPawn(n) );
     assert( !IsKing(n) );
   }
-  void ASSERTS_MakePromotionMove( const PieceType::EPieceType p, const PieceType::EPieceType n, const Sq::ESq from, const Sq::ESq to )
+  void Bitboard::ASSERTS_MakePromotionMove( const PieceType::EPieceType p, const PieceType::EPieceType n, const Sq::ESq from, const Sq::ESq to )
   {
     assert( IsSqOccupied(from) );
     assert( IsPawn(p) );
@@ -796,7 +864,7 @@ public:
 	PieceType::EPieceType pas = PieceAtSq(from);
     assert( pas == p );
   }
-  void ASSERTS_MakeCaptureMove( const PieceType::EPieceType p, const PieceType::EPieceType c, const Sq::ESq from, const Sq::ESq to )
+  void Bitboard::ASSERTS_MakeCaptureMove( const PieceType::EPieceType p, const PieceType::EPieceType c, const Sq::ESq from, const Sq::ESq to )
   {
     assert( IsSqOccupied(to) );
     assert( IsSqOccupied(from) );
@@ -807,25 +875,14 @@ public:
     assert( PieceAtSq(from) == p );
     assert( PieceAtSq(to) == c );
   }
-  void ASSERTS_MakeNormalMove( const PieceType::EPieceType p, const Sq::ESq from, const Sq::ESq to )
+  void Bitboard::ASSERTS_MakeNormalMove( const PieceType::EPieceType p, const Sq::ESq from, const Sq::ESq to )
   {
     assert( IsSqEmpty(to) );
     assert( IsSqOccupied(from) );
     assert( PieceAtSq(from) == p );
   }
-};
 
-
-//Try using X_aligned_memcpy_sse2( &dst, &src, sizeof(Bitboard) );
-inline void CopyBitboard( Bitboard& dst, const Bitboard& src ){ memcpy( &dst, &src, sizeof(Bitboard) ); }
-
-//Try using X_aligned_memcpy_sse2( dst, src, sizeof(Bitboard) );
-inline void CopyBitboard( Bitboard* dst, const Bitboard* src ){ memcpy( dst, src, sizeof(Bitboard) ); }
-
-inline void ClearBitboard( Bitboard* b ){ memset( b, 0, sizeof(Bitboard) ); }
-
-
-static Bitboard gBitboard;
+///////////////////////////////////////////////////////////////////////////
 
 #endif
 

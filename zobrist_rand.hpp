@@ -13,6 +13,8 @@ namespace Zobrist
     static ui64 ep_key[Sq::none];
 }
 
+void init_zobrist();
+
 void init_zobrist()
 {
     for(unsigned i=0; i<PieceType::none; ++i)
