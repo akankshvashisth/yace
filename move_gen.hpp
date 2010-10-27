@@ -28,6 +28,7 @@ static type_array<move, Constants::max_moves_per_position>& GeneratePseudoLegalM
 	PieceType::EPieceType epawns, ebishops, erooks, equeens, eknights, eking, eopponent, eself;
 	const  Sq::ESq epSq = bb.EpSquare();
 	const ui64 epSqBB = lookup::single_bit_set[epSq];
+  Color::EColor selfCol, oppCol;
 	/*const bool hasEp = epSq != Sq::none;*/
 
 	move m;
@@ -54,6 +55,8 @@ static type_array<move, Constants::max_moves_per_position>& GeneratePseudoLegalM
 		eking    = PieceType::wking		;
 		eopponent= PieceType::black		;
 		eself    = PieceType::white		;
+    selfCol  = Color::white;
+    oppCol   = Color::black;
 	}
 	else
 	{
@@ -74,6 +77,8 @@ static type_array<move, Constants::max_moves_per_position>& GeneratePseudoLegalM
 		eking    = PieceType::bking		;
 		eopponent= PieceType::white		;
 		eself    = PieceType::black		;
+    selfCol  = Color::black;
+    oppCol   = Color::white;
 	}
 
 	opponentOrEp = opponent | epSqBB;
@@ -136,7 +141,7 @@ static type_array<move, Constants::max_moves_per_position>& GeneratePseudoLegalM
 					Sq::ESq to = (Sq::ESq)BitScanForward_bsf(captures);
 					captures &= (lookup::not_single_bit_set[to]);
 					m.to = to;
-					m.captured = bb.PieceAtSq(to);
+					m.captured = bb.PieceAtSq_Quick(to, oppCol);
 
 					if( lookup::single_bit_set[to] & Constants::rank_8 )
 					{
@@ -205,7 +210,7 @@ static type_array<move, Constants::max_moves_per_position>& GeneratePseudoLegalM
 					Sq::ESq to = (Sq::ESq)BitScanForward_bsf(captures);
 					captures &= (lookup::not_single_bit_set[to]);
 					m.to = to;
-					m.captured = bb.PieceAtSq(to);
+					m.captured = bb.PieceAtSq_Quick(to, oppCol);
 					if( lookup::single_bit_set[to] & Constants::rank_1 )
 					{
 						m.special = MoveType::promotion;
@@ -250,7 +255,7 @@ static type_array<move, Constants::max_moves_per_position>& GeneratePseudoLegalM
 			Sq::ESq to = (Sq::ESq)BitScanForward_bsf(captures);
 			captures &= (lookup::not_single_bit_set[to]);
 			m.to = to;
-			m.captured = bb.PieceAtSq(to);
+			m.captured = bb.PieceAtSq_Quick(to, oppCol);
 			mvs.push_back(m);
 		}
 		m.type = MoveType::normal;
@@ -280,7 +285,7 @@ static type_array<move, Constants::max_moves_per_position>& GeneratePseudoLegalM
 			Sq::ESq to = (Sq::ESq)BitScanForward_bsf(captures);
 			captures &= (lookup::not_single_bit_set[to]);
 			m.to = to;
-			m.captured = bb.PieceAtSq(to);
+			m.captured = bb.PieceAtSq_Quick(to, oppCol);
 			mvs.push_back(m);
 		}
 		m.type = MoveType::normal;
@@ -310,7 +315,7 @@ static type_array<move, Constants::max_moves_per_position>& GeneratePseudoLegalM
 			Sq::ESq to = (Sq::ESq)BitScanForward_bsf(captures);
 			captures &= (lookup::not_single_bit_set[to]);
 			m.to = to;
-			m.captured = bb.PieceAtSq(to);
+			m.captured = bb.PieceAtSq_Quick(to, oppCol);
 			mvs.push_back(m);
 		}
 		m.type = MoveType::normal;
@@ -341,7 +346,7 @@ static type_array<move, Constants::max_moves_per_position>& GeneratePseudoLegalM
 			Sq::ESq to = (Sq::ESq)BitScanForward_bsf(captures);
 			captures &= (lookup::not_single_bit_set[to]);
 			m.to = to;
-			m.captured = bb.PieceAtSq(to);
+			m.captured = bb.PieceAtSq_Quick(to, oppCol);
 			mvs.push_back(m);
 		}
 		m.type = MoveType::normal;
@@ -371,7 +376,7 @@ static type_array<move, Constants::max_moves_per_position>& GeneratePseudoLegalM
 			Sq::ESq to = (Sq::ESq)BitScanForward_bsf(captures);
 			captures &= (lookup::not_single_bit_set[to]);
 			m.to = to;
-			m.captured = bb.PieceAtSq(to);
+			m.captured = bb.PieceAtSq_Quick(to, oppCol);
 			mvs.push_back(m);
 		}
 		m.type = MoveType::normal;
