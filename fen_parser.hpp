@@ -19,21 +19,26 @@ inline std::string to_string (const T& t)
 
 namespace FEN
 {
-	class Appender : public std::vector<std::string> {
+	class Appender : public std::vector<std::string> 
+  {
 	public:
-		void operator() (const char* s, unsigned length) {
+		void operator() (const char* s, unsigned length) 
+    {
 			this->push_back(std::string(s,length));
 		}
 	};
 
 	template<typename Operator>
-	inline void tokenize(Operator& op, const char* input, const char* delimiters) {
+	inline void tokenize(Operator& op, const char* input, const char* delimiters) 
+  {
 		const char* s = input;
 		const char* e = s;
-		while (*e != 0) {
+		while (*e != 0) 
+    {
 			e = s;
 			while (*e != 0 && strchr(delimiters, *e) == 0) ++e;
-			if (e - s > 0) {
+			if (e - s > 0) 
+      {
 				op(s, (unsigned)(e - s));
 			}
 			s = e + 1;

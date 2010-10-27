@@ -10,21 +10,21 @@ template< typename T, unsigned N >
 struct type_array
 {
     const T& back() const { return data[msize-1]; }
-	      T& back()       { return data[msize-1]; }
-    void push_back( const T& m )
+	        T& back()       { return data[msize-1]; }
+  void push_back( const T& m )
 	{  
 		data[msize] = m; 
 		++msize; 
 		assert(msize < N);
 	}
-	unsigned size() const { return msize; }
+	const unsigned& size() const { return msize; }
 	void pop_back()
 	{
 		--msize;
 		assert(msize >= 0);
 	}
-	const T& operator[]( unsigned i ) const { return data[i]; }
-	      T& operator[]( unsigned i )       { return data[i]; }
+	const T& operator[]( unsigned i ) const { assert(i<msize); return data[i]; }
+	      T& operator[]( unsigned i )       { assert(i<msize); return data[i]; }
 	void clear()
 	{
 		msize = 0;

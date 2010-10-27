@@ -12,14 +12,13 @@
 #include "bitboard_zobrist.hpp"
 #include "tt.hpp"
 #include "perft.hpp"
+#include "evaluation.hpp"
 
 void RunPerft(const std::string& fen, int depth, int iters, ui64 value)
 {
 	Show<ShowTypes::Console>::Op(fen);
 	Bitboard& b = BitboardFromFen(fen);
-    b.zobrists[0] = ZobristFromBitboard(b);
-	//for(int i=0; i<Constants::max_depth; ++i)
-	//	b.moves_arr[i].reserve(128);
+    b.zobrists.push_back( ZobristFromBitboard(b) );
 	aks::time::HighResStopWatch w;
 	w.startTimer();
 	ui64 sum=0;
@@ -58,7 +57,7 @@ void RunZobTest(const std::string& fen, int iters)
 {
     Bitboard& b = BitboardFromFen(fen);
     ui64 zob_original = ZobristFromBitboard(b);
-
+    b.zobrists.push_back(zob_original);
     int n_moves;
     bool go_on = true;
     for(int i=0; i<iters; ++i)
@@ -74,11 +73,10 @@ void RunZobTest(const std::string& fen, int iters)
                 if(b.MakeMove(m))
                 {
                     ui64 zob_now = ZobristFromBitboard(b);
-                    UpdateZobristFromMove(zob_original, m, b);
-                    if((zob_now != zob_original))
+                    b.zobrists.push_back(b.zobrists.back());
+                    UpdateZobristFromMove(b.zobrists.back(), m, b);
+                    if((zob_now != b.zobrists.back()))
                         Show<ShowTypes::Console>::Op( "No" );
-                    //Show<ShowTypes::Console>::Op( b );
-                    //Show<ShowTypes::Console>::Op( FenFromBitboard(b) );
                     break;
                 }
                 else
@@ -91,89 +89,179 @@ void RunZobTest(const std::string& fen, int iters)
     }
 }
 
+
+
+
+
+
+
+
+
+int NegaMax(Bitboard& b, int depth, int current_depth, ui64& nodesSeen)
+{
+  int best = Constants::NEG_INF;
+  if(depth <= 0) { ++nodesSeen; return evaluate(b); }
+
+  GeneratePseudoLegalMoves(b, b.moves_arr[current_depth]);
+  int n_moves = b.moves_arr[current_depth].size();
+
+  for (int i = 0; i < n_moves; i++) 
+  {
+      move& m =b.moves_arr[current_depth][i];
+      if(b.MakeMove(m))
+      {
+          b.zobrists.push_back(b.zobrists.back());
+          UpdateZobristFromMove(b.zobrists.back(), m, b);
+          int val = -NegaMax(b, depth-1, current_depth+1, nodesSeen);
+          if( val > best )
+            best = val;
+          b.zobrists.pop_back();
+      }
+      b.UnmakeMove();
+  }
+  return best;
+}
+int GetNegaMaxScore(Bitboard& b, int depth, ui64& nodesSeen)
+{
+  //if(b.IsWhitesTurn())
+  //  return NegaMax(b,depth,0);
+  //else
+  //  return -NegaMax(b,depth,0);
+  int val = NegaMax(b,depth,0, nodesSeen);
+  return val;
+}
+
+int AlphaBeta(Bitboard& b, int depth, int alpha, int beta, int current_depth, ui64& nodesSeen)
+{
+  if(depth <= 0) { ++nodesSeen; return evaluate(b); }
+
+  GeneratePseudoLegalMoves(b, b.moves_arr[current_depth]);
+  int n_moves = b.moves_arr[current_depth].size();
+
+  int val = 0;
+  int legalMoves = 0;
+  for (int i = 0; i < n_moves; i++) 
+  {
+      move& m =b.moves_arr[current_depth][i];
+      bool isMoveLegal = b.MakeMove(m);
+      if(isMoveLegal)
+      {
+          b.zobrists.push_back(b.zobrists.back());
+          UpdateZobristFromMove(b.zobrists.back(), m, b);
+          val = -AlphaBeta(b, depth-1, -beta, -alpha, current_depth+1, nodesSeen);
+          ++legalMoves;
+          if( val >= beta )
+          {
+            b.zobrists.pop_back();
+            b.UnmakeMove();
+            return beta;
+          }
+          if( val > alpha )
+          {
+            alpha = val;
+          }
+          ++legalMoves;
+          b.zobrists.pop_back();
+      }
+      b.UnmakeMove();
+  }
+  return alpha;
+}
+int GetAlphaBetaScore(Bitboard& b, int depth, ui64& nodesSeen)
+{
+  //if(b.IsWhitesTurn())
+  //  return NegaMax(b,depth,0);
+  //else
+  //  return -NegaMax(b,depth,0);
+  int val = AlphaBeta(b,depth,Constants::NEG_INF,Constants::POS_INF,0,nodesSeen);
+  return val;
+}
+
+void CompareMiniMax_AlphaBeta(const std::string& fen, int depth)
+{
+  ui64 nodesSeen = 0;
+  ui64 nodesSeenAB = 0;
+  double mmTime = 0;
+  double abTime = 0;
+  aks::time::HighResStopWatch w;
+	w.startTimer();
+  {
+    Bitboard& b = BitboardFromFen(fen);
+    b.zobrists.push_back( ZobristFromBitboard(b) );
+    Show<ShowTypes::Console>::Op(GetNegaMaxScore(b, depth, nodesSeen));
+  }
+  w.stopTimer();
+  mmTime = w.getElapsedTime();
+  w.startTimer();
+  {
+    Bitboard& b = BitboardFromFen(fen);
+    b.zobrists.push_back( ZobristFromBitboard(b) );
+    Show<ShowTypes::Console>::Op(GetAlphaBetaScore(b, depth, nodesSeenAB));
+  }
+  w.stopTimer();
+  abTime = w.getElapsedTime();
+  Show<ShowTypes::Console>::Op((long)nodesSeen);
+  Show<ShowTypes::Console>::Op((long)nodesSeenAB);
+  Show<ShowTypes::Console>::Op((double)nodesSeenAB/nodesSeen);
+  Show<ShowTypes::Console>::Op(mmTime);
+  Show<ShowTypes::Console>::Op(abTime);
+  Show<ShowTypes::Console>::Op(abTime/mmTime);
+  Show<ShowTypes::Console>::Op(nodesSeen/mmTime);
+  Show<ShowTypes::Console>::Op(nodesSeenAB/abTime);
+  Show<ShowTypes::Console>::Op("------------------");
+}
+
 int main()
 {
-    //Bitboard b;
-    //b.PutPieceAt(PieceType::wknights, Sq::a1);
-    //b.PutPieceAt(PieceType::wbishops, Sq::h1);
-    //b.PutPieceAt(PieceType::bknights, Sq::a8);
-    //b.PutPieceAt(PieceType::bbishops, Sq::h8);
-    //Show<ShowTypes::Console>::Op(b);
-    ////Show<ShowTypes::Console>::Op( KnightAttacks( KnightAttacks( KnightAttacks( KnightAttacks( SqSetBit(Sq::h2) ) ) ) ) );
-    //BB h2 = SqSetBit(Sq::h2);
-    //BB a3 = SqSetBit(Sq::a3);
-    //BB wp = h2 | a3;
-    //BB b6 = SqSetBit(Sq::b6);
-    //BB c4 = SqSetBit(Sq::c4);
-    //BB bp = b6 | c4;
-
-    //BB wbb;
-    //BB bbb;
-
-    ////for( int i=0; i<7; ++i )
-    //{
-    //    /*Show<ShowTypes::Console>::Op(KnightFill(bb));
-    //    bb = KnightAttacks(bb);*/
-    //    /*bb = KingAttacks(bb);
-    //    Show<ShowTypes::Console>::Op(bb);*/
-    //    //bb = WhitePawnAnyAttacks(bb);
-    //    wbb = WhiteSafePawnSquares(wp,bp);
-    //    bbb = BlackSafePawnSquares(wp,bp);
-    //    Show<ShowTypes::Console>::Op(wbb);
-    //    Show<ShowTypes::Console>::Op("------------------");
-    //    Show<ShowTypes::Console>::Op(bbb);
-    //    Show<ShowTypes::Console>::Op("------------------");
-    //}
-
-	//Show<ShowTypes::Console>::Op((unsigned)(sizeof(Bitboard)));
-	//Show<ShowTypes::Console>::Op((unsigned)(sizeof(move_array<Constants::max_game_length>)));
-	//Show<ShowTypes::Console>::Op((unsigned)(Constants::max_depth * sizeof(move_array<Constants::max_moves_per_position>)));
-
-    //FEN::FenParser("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-    //FEN::FenParser("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1");
-    //FEN::FenParser("rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2");
-    //FEN::FenParser("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2");
-    //FEN::FenParser("r1bqkb1r/5ppp/p1np1n2/1p1Np1B1/4P3/N7/PPP2PPP/R2QKB1R b KQkq - 0 10");
-
-    //const std::string fen("rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2");
-    //Bitboard b;
-    ////Show<ShowTypes::Console>::Op(b);
-    //b = BitboardFromFen(fen);
-    //const std::string fenFromBoard = FenFromBitboard(b);
-    ////Show<ShowTypes::Console>::Op(b);
-    //Show<ShowTypes::Console>::Op(fen);
-    //Show<ShowTypes::Console>::Op(fenFromBoard);
-    //Show<ShowTypes::Console>::Op(FEN::FenParser(fen));
-    //Show<ShowTypes::Console>::Op(b);
-  Show<ShowTypes::Console>::Op((unsigned)sizeof(Bitboard));
-  Show<ShowTypes::Console>::Op((unsigned)sizeof(move));
-  Show<ShowTypes::Console>::Op((unsigned)sizeof(ui64));
-  Show<ShowTypes::Console>::Op((unsigned)sizeof(move_packed));
-  Show<ShowTypes::Console>::Op((unsigned)sizeof(TT_Entry));
-  Show<ShowTypes::Console>::Op((unsigned)sizeof(TT_Big_Entry));
+  //Show<ShowTypes::Console>::Op((unsigned)sizeof(Bitboard));
+  //Show<ShowTypes::Console>::Op((unsigned)sizeof(move));
+  //Show<ShowTypes::Console>::Op((unsigned)sizeof(ui64));
+  //Show<ShowTypes::Console>::Op((unsigned)sizeof(move_packed));
+  //Show<ShowTypes::Console>::Op((unsigned)sizeof(TT_Entry));
+  //Show<ShowTypes::Console>::Op((unsigned)sizeof(TT_Big_Entry));
 
 	init_all();
 	
-	bool RunPerfts = true;
+	bool RunPerfts = false;
 
-	if(RunPerfts)
+	if(1)
   {
     const std::string fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-	//RunPerft(fen, 1, 1, 20);
-	//RunPerft(fen, 2, 1, 400);
-	//RunPerft(fen, 3, 1, 8902);
-	//RunPerft(fen, 4, 1, 197281);
-	//RunPerft(fen, 5, 1, 4865609);
-	RunPerft(fen, 6, 1, 119060324);
+    CompareMiniMax_AlphaBeta(fen, 1);
+    CompareMiniMax_AlphaBeta(fen, 2);
+    CompareMiniMax_AlphaBeta(fen, 3);
+    CompareMiniMax_AlphaBeta(fen, 4);
+    //CompareMiniMax_AlphaBeta(fen, 5);
+    //CompareMiniMax_AlphaBeta(fen, 6);
+    //Bitboard& b = BitboardFromFen(fen);
+    //Show<ShowTypes::Console>::Op(evaluate(b));
+    //RunZobTest(fen, 100);
+		//RunPerft(fen,  1, 1, 20);
+		//RunPerft(fen,  2, 1, 400);
+		//RunPerft(fen,  3, 1, 8902);
+    	//RunPerft(fen,  4, 1, 197281);
+		//RunPerft(fen,  5, 1, 4865609);
+		// RunPerft(fen,  6, 1, 119060324);
+		// RunPerft(fen,  7, 1, 3195901860);
+		// RunPerft(fen,  8, 1, 84998978956);
+		// RunPerft(fen,  9, 1, 2439530234167);
+		// RunPerft(fen, 10, 1, 69352859712417);
   }
-  if(RunPerfts)
+  if(0)
   {
-    const std::string fen("4k3/8/4P3/8/8/8/8/4K3 w - - 0 1");
+    const std::string fen("2k58/8/8/4P3/8/8/4K3/8/ w - - 0 1");
+    
+    //const std::string fen("3brrb1/2N4B/8/2p4Q/2p2k2/5P2/4P1KR/2N2RB1 w - - 0 1");
+    //const std::string fen("8/5p1k/6pp/3p4/Rpp2n1P/5P2/PbP2r1P/3K4 b - - 1 33");
+
+    CompareMiniMax_AlphaBeta(fen, 4);
+
+    
 	//RunPerft(fen, 1, 1, 20);
 	//RunPerft(fen, 2, 1, 400);
 	//RunPerft(fen, 3, 1, 8902);
 	//RunPerft(fen, 4, 1, 197281);
-	//RunPerft(fen, 5, 1, 4865609);
+	//RunPerft(fen, 5, 1, 2826);
     //RunPerft(fen, 8, 1, 10000000000000);
 	//RunPerft(fen, 2, 1,  195314821);
 	//RunPerft(fen, 3, 1,  195314821);
@@ -181,17 +269,20 @@ int main()
 	//RunPerft(fen, 5, 1,  195314821);
 	//RunPerft(fen, 6, 1,  195314821);
 	//RunPerft(fen, 7, 1,  195314821);
-	RunPerft(fen, 9, 1,  195314821);
+	//RunPerft(fen, 9, 1,  195314821);
     //RunPerft(fen, 11, 1,  195314821);
   }
-  if(RunPerfts)
+  if(0)
   {
     const std::string fen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
+    //    Bitboard& b = BitboardFromFen(fen);
+    //Show<ShowTypes::Console>::Op(evaluate(b));
 	//RunPerft(fen, 1, 1, 48);
 	//RunPerft(fen, 2, 1, 2039);
 	//RunPerft(fen, 3, 1, 97862);
 	//RunPerft(fen, 4, 1, 4085603);
-	RunPerft(fen, 5, 1, 193690690);
+    CompareMiniMax_AlphaBeta(fen, 4);
+	//RunPerft(fen, 5, 1, 193690690);
 	//RunPerft(fen, 6, 1, 8031647685);
 
   }
@@ -211,21 +302,22 @@ int main()
 	//RunPerft(fen, 1, 1, 50);
 	//RunPerft(fen, 2, 1, 279);
   }
-    if(RunPerfts)
+    if(0)
   {
     const std::string fen("n1n5/PPPk4/8/8/8/8/4Kppp/5N1N b - - 0 1");
 
+    CompareMiniMax_AlphaBeta(fen, 12);
 	//RunPerft(fen, 1, 1, 24);
 	//RunPerft(fen, 2, 1, 496);
 	//RunPerft(fen, 3, 1, 9483);
 	//RunPerft(fen, 4, 1, 182838);
-	RunPerft(fen, 5, 1, 3605103);
+	//RunPerft(fen, 5, 1, 3605103);
 	//RunPerft(fen, 6, 1, 71179139);
   }
   if(RunPerfts)
   {
     const std::string fen("rnbqkb1r/ppppp1pp/7n/4Pp2/8/8/PPPP1PPP/RNBQKBNR w KQkq f6 0 3");
-	  RunPerft(fen, 5, 1, 11139762);
+	  //RunPerft(fen, 5, 1, 11139762);
   }
     if(RunPerfts)
   {

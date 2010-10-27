@@ -73,6 +73,7 @@ public:
 
   const ui64& PiecesAt( const PieceType::EPieceType p ) const ;
   PieceType::EPieceType PieceAtSq( const Sq::ESq sq ) const;
+  PieceType::EPieceType PieceAtSq_Quick( const Sq::ESq sq, const Color::EColor col ) const;
   void PutPieceAt( const PieceType::EPieceType p, const Sq::ESq sq );
   void ClearPieceAt( const PieceType::EPieceType p, const Sq::ESq sq );
   void ClearPieceAt( const PieceType::EPieceType p, const int file, const int rank );
@@ -696,6 +697,28 @@ static Bitboard gBitboard;
   void Bitboard::IncrementFullMoveCounter() { ++fullMoveCounter; }
 
   const ui64& Bitboard::PiecesAt( const PieceType::EPieceType p ) const { return pcBB[p]; }
+
+  PieceType::EPieceType Bitboard::PieceAtSq_Quick( const Sq::ESq sq, const Color::EColor col ) const
+  {
+    //assumes there is a piece at the square!!
+    const BB square = SqSetBit(sq);
+    switch(col)
+    {
+    case Color::white:
+      for( unsigned i=Ranges::wBegin; i<Ranges::wEnd; ++i )
+      {
+        if( IS_TRUE(square & pcBB[i]) ) return (PieceType::EPieceType)i;
+      }
+      break;
+    default:
+      for( unsigned i=Ranges::bBegin; i<Ranges::bEnd; ++i )
+      {
+        if( IS_TRUE(square & pcBB[i]) ) return (PieceType::EPieceType)i;
+      }     
+    };
+    return PieceType::none;
+  }
+
   PieceType::EPieceType Bitboard::PieceAtSq( const Sq::ESq sq ) const
   {
     const BB square = SqSetBit(sq);
