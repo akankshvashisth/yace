@@ -69,6 +69,9 @@ namespace Constants
 
   static const int POS_INF =  100000000;
   static const int NEG_INF = -100000000;
+
+  static const int MATE_VALUE = 65535;
+  static const int DRAW_VALUE = 0;
 }
 
 static const ui64 rankBB[] =
