@@ -9,6 +9,7 @@
 #include "fen_parser.hpp"
 #include "move.hpp"
 #include "chessutils.hpp"
+#include <fstream>
 
 namespace ShowTypes
 {
@@ -47,22 +48,22 @@ struct Show<ShowTypes::Console>
       std::cout << std::endl;
     }
     std::cout << "--------" << std::endl;
-    std::cout << "Full Move Counter : " << b.FullMoveCounter() << std::endl;
-    std::cout << "Half Move Clock   : " << b.HalfMoveClock() << std::endl;
-    std::cout << "Turn              : " << (b.IsWhitesTurn() ? "White" : "Black") << std::endl;
-    std::cout << "Ep Square         : " << Sq::SSq[b.EpSquare()] << std::endl;
-    if( b.WhiteCanCastleKingSide()  || 
-        b.BlackCanCastleKingSide()  ||
-        b.WhiteCanCastleQueenSide() ||
-        b.BlackCanCastleQueenSide() )
-    {
-      std::cout << "Castling Rights   : ";
-      if(b.WhiteCanCastleKingSide() ) std::cout << "K ";
-      if(b.WhiteCanCastleQueenSide()) std::cout << "Q ";
-      if(b.BlackCanCastleKingSide() ) std::cout << "k ";
-      if(b.BlackCanCastleQueenSide()) std::cout << "q ";
-      std::cout << std::endl;
-    }
+    //std::cout << "Full Move Counter : " << b.FullMoveCounter() << std::endl;
+    //std::cout << "Half Move Clock   : " << b.HalfMoveClock() << std::endl;
+    //std::cout << "Turn              : " << (b.IsWhitesTurn() ? "White" : "Black") << std::endl;
+    //std::cout << "Ep Square         : " << Sq::SSq[b.EpSquare()] << std::endl;
+    //if( b.WhiteCanCastleKingSide()  || 
+    //    b.BlackCanCastleKingSide()  ||
+    //    b.WhiteCanCastleQueenSide() ||
+    //    b.BlackCanCastleQueenSide() )
+    //{
+    //  std::cout << "Castling Rights   : ";
+    //  if(b.WhiteCanCastleKingSide() ) std::cout << "K ";
+    //  if(b.WhiteCanCastleQueenSide()) std::cout << "Q ";
+    //  if(b.BlackCanCastleKingSide() ) std::cout << "k ";
+    //  if(b.BlackCanCastleQueenSide()) std::cout << "q ";
+    //  std::cout << std::endl;
+    //}
   }
 
   template<>
@@ -124,5 +125,41 @@ struct Show<ShowTypes::Console>
 	s += Sq::SSq[m.to];
 	std::cout << s << " ";
   }
+
+
+  //////////////////////////////////////////////////
+
+  
+template<>
+struct Show<ShowTypes::File>
+{
+    static void Op( const std::string& filename, const Bitboard& b )
+    {
+            std::ofstream myfile;
+            myfile.open( filename.c_str(), std::ios::app );
+            myfile << std::endl;
+            bool blSq =true;
+            for( int i=7; i>=0; --i )
+            {
+                for( int j=0; j<8; ++j )
+                {
+                    const Sq::ESq sq = (Sq::ESq)(i*8+j);
+                    const PieceType::EPieceType p = b.PieceAtSq( sq );
+                    if(blSq)
+                        myfile << PieceType::SPieceType_to_file_on_black[p];
+                    else
+                        myfile << PieceType::SPieceType_to_file_on_white[p];
+
+                    blSq = !blSq;
+                }
+                myfile << std::endl;
+                blSq = !blSq;
+            }
+
+            myfile.close();
+    }
+};
+
+  /////////////////////////////////////////////////
 
 #endif

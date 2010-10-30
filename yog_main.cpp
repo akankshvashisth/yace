@@ -131,25 +131,42 @@ int GetNegaMaxScore(Bitboard& b, int depth, ui64& nodesSeen)
   return val;
 }
 
-int AlphaBeta(Bitboard& b, int depth, int alpha, int beta, int current_depth, ui64& nodesSeen)
+struct PV
 {
-  if(depth <= 0) { ++nodesSeen; return evaluate(b); }
+    PV():cmove(0){}
+    int cmove;                           // Number of moves in the line.
+    move argmove[Constants::max_depth];  // The line.
+    void Show() const
+    {
+        for(int i=0; i<cmove; ++i)
+        {
+            std::cout << Sq::SSq[argmove[i].from] << Sq::SSq[argmove[i].to] << " ";
+        }
+    }
+};
 
-  GeneratePseudoLegalMoves(b, b.moves_arr[current_depth]);
-  int n_moves = b.moves_arr[current_depth].size();
+int AlphaBeta(Bitboard& b, int depth, int alpha, int beta, int current_depth, ui64& nodesSeen, PV* pv, PV* prev_PV)
+{
+  PV pv_local;
+  if(depth <= 0)
+  {
+      pv->cmove = 0;
+      ++nodesSeen; 
+      return evaluate(b); 
+  }
 
   int val = 0;
   bool hasLegalMoves = false;
-  for (int i = 0; i < n_moves; i++) 
+  if(prev_PV && prev_PV->cmove > current_depth)
   {
-      move& m =b.moves_arr[current_depth][i];
+      move& m = prev_PV->argmove[current_depth];
       bool isMoveLegal = b.MakeMove(m);
       if(isMoveLegal)
       {
           hasLegalMoves = true;
           b.zobrists.push_back(b.zobrists.back());
           UpdateZobristFromMove(b.zobrists.back(), m, b);
-          val = -AlphaBeta(b, depth-1, -beta, -alpha, current_depth+1, nodesSeen);
+          val = -AlphaBeta(b, depth-1, -beta, -alpha, current_depth+1, nodesSeen, &pv_local, prev_PV);
           if( val >= beta )
           {
             b.zobrists.pop_back();
@@ -159,6 +176,40 @@ int AlphaBeta(Bitboard& b, int depth, int alpha, int beta, int current_depth, ui
           if( val > alpha )
           {
             alpha = val;
+            pv->argmove[0] = m;
+            memcpy(pv->argmove + 1, pv_local.argmove, pv_local.cmove * sizeof(move));
+            pv->cmove = pv_local.cmove + 1;
+          }
+          b.zobrists.pop_back();
+      }
+      b.UnmakeMove();
+  }
+  
+  GeneratePseudoLegalMoves(b, b.moves_arr[current_depth]);
+  int n_moves = b.moves_arr[current_depth].size();
+  
+  for (int i = 0; i < n_moves; i++) 
+  {
+      move& m =b.moves_arr[current_depth][i];
+      bool isMoveLegal = b.MakeMove(m);
+      if(isMoveLegal)
+      {
+          hasLegalMoves = true;
+          b.zobrists.push_back(b.zobrists.back());
+          UpdateZobristFromMove(b.zobrists.back(), m, b);
+          val = -AlphaBeta(b, depth-1, -beta, -alpha, current_depth+1, nodesSeen, &pv_local, 0);
+          if( val >= beta )
+          {
+            b.zobrists.pop_back();
+            b.UnmakeMove();
+            return beta;
+          }
+          if( val > alpha )
+          {
+            alpha = val;
+            pv->argmove[0] = m;
+            memcpy(pv->argmove + 1, pv_local.argmove, pv_local.cmove * sizeof(move));
+            pv->cmove = pv_local.cmove + 1;
           }
           b.zobrists.pop_back();
       }
@@ -174,7 +225,9 @@ int AlphaBeta(Bitboard& b, int depth, int alpha, int beta, int current_depth, ui
           {
               beta = mating_value;
               if (alpha >= mating_value) 
+              {
                   return mating_value;
+              }
           }
           mating_value = -Constants::MATE_VALUE + current_depth;
 
@@ -182,24 +235,45 @@ int AlphaBeta(Bitboard& b, int depth, int alpha, int beta, int current_depth, ui
           {
               alpha = mating_value;
               if (beta <= mating_value) 
+              {
                   return mating_value;
+              }
           }
       }
       else
       {
           return Constants::DRAW_VALUE;
+          //int draw_value = Constants::DRAW_VALUE;
+          //if (draw_value < beta) 
+          //{
+          //    beta = draw_value;
+          //    if (alpha >= draw_value) 
+          //    {
+          //        return draw_value;
+          //    }
+          //}
+          //draw_value = -Constants::MATE_VALUE;
+
+          //if (draw_value > alpha) 
+          //{
+          //    alpha = draw_value;
+          //    if (beta <= draw_value) 
+          //    {
+          //        return draw_value;
+          //    }
+          //}
       }
   }
 
   return alpha;
 }
-int GetAlphaBetaScore(Bitboard& b, int depth, ui64& nodesSeen)
+int GetAlphaBetaScore(Bitboard& b, int depth, ui64& nodesSeen, PV& pv, PV& prev_PV)
 {
   //if(b.IsWhitesTurn())
   //  return NegaMax(b,depth,0);
   //else
   //  return -NegaMax(b,depth,0);
-  int val = AlphaBeta(b,depth,Constants::NEG_INF,Constants::POS_INF,0,nodesSeen);
+  int val = AlphaBeta(b,depth,Constants::NEG_INF,Constants::POS_INF,0,nodesSeen, &pv, &prev_PV);
   return val;
 }
 
@@ -220,10 +294,20 @@ void CompareMiniMax_AlphaBeta(const std::string& fen, int depth)
   mmTime = w.getElapsedTime();
   w.startTimer();
   {
+    PV pv;
+    PV prev_pv;
     Bitboard& b = BitboardFromFen(fen);
     b.zobrists.push_back( ZobristFromBitboard(b) );
-    int val = GetAlphaBetaScore(b, depth, nodesSeenAB);
-    Show<ShowTypes::Console>::Op(val * ( b.IsWhitesTurn()?1:-1));
+    int val = GetAlphaBetaScore(b, depth, nodesSeenAB, pv, prev_pv);
+    Show<ShowTypes::Console>::Op(b);
+    for(int i=0; i<pv.cmove; ++i)
+    {
+        //Show<ShowTypes::Console>::Op("----------");
+        b.MakeMove(pv.argmove[i]);
+        Show<ShowTypes::Console>::Op(b);
+        Show<ShowTypes::Console>::Op(FenFromBitboard(b));
+    }
+    Show<ShowTypes::Console>::Op(val * ( b.IsWhitesTurn()?1:1));
   }
   w.stopTimer();
   abTime = w.getElapsedTime();
@@ -236,6 +320,77 @@ void CompareMiniMax_AlphaBeta(const std::string& fen, int depth)
   Show<ShowTypes::Console>::Op(nodesSeen/mmTime);
   Show<ShowTypes::Console>::Op(nodesSeenAB/abTime);
   Show<ShowTypes::Console>::Op("------------------");
+}
+
+int absVal(int i){ return i<0?-i:i; }
+
+void PlayGame(const std::string& fen)
+{
+    const std::string filename("gamefile_19.txt"); 
+    Bitboard& b = BitboardFromFen(fen);
+    b.zobrists.push_back( ZobristFromBitboard(b) );
+    Show<ShowTypes::Console>::Op(b);
+    Show<ShowTypes::File>::Op(filename, b);
+    bool goOn = true;
+    for(int n=0; n<300; ++n)
+    {
+        if(goOn)
+        {
+            aks::time::HighResStopWatch w;
+            int val = 0;
+            int depth = 0;
+            move bestMove;
+            double totalTime = 0;
+            double max_time = 10.0;//((n%2)==0) ? 5.0 : 0.25;
+            type_array<PV, Constants::max_depth>* pvs = new type_array<PV, Constants::max_depth>();
+            pvs->push_back();
+            while(totalTime < max_time && ((depth + absVal(val)) < Constants::MATE_VALUE))
+            {
+                PV& prev_pv = (*pvs)[depth];
+
+                ++depth;
+                pvs->push_back();
+                PV& pv = (*pvs)[depth];
+                
+                ui64 nodesSeen = 0;
+                w.startTimer();
+                val = GetAlphaBetaScore(b, depth, nodesSeen, pv, prev_pv);  
+                w.stopTimer();
+                totalTime += w.getElapsedTime();
+                if(max_time - totalTime < w.getElapsedTime())
+                {
+                    totalTime = max_time;
+                }
+
+                if( absVal(val) == Constants::MATE_VALUE )
+                {
+                    std::cout << (b.IsWhitesTurn() ? "White Mated" : "Black Mated") << std::endl;
+                    goOn = false;
+                    break;
+                }
+                
+                std::cout << (b.IsWhitesTurn()? val:-val) << "\t" << nodesSeen << "\t\t" << w.getElapsedTime() << "\t\t";
+                pv.Show();
+                std::cout << std::endl;
+                bestMove = pv.argmove[0];
+            }
+            delete pvs;
+            if(goOn)
+            {
+                b.MakeMove(bestMove);
+                b.zobrists.push_back(b.zobrists.back());
+                UpdateZobristFromMove(b.zobrists.back(), bestMove, b);
+                Show<ShowTypes::Console>::Op(b);
+                Show<ShowTypes::File>::Op(filename, b);
+                for(int i=0; i<b.moves.size(); ++i)
+                {
+                    std::cout << Sq::SSq[b.moves[i].from] << Sq::SSq[b.moves[i].to] << " ";
+                }
+                std::cout << std::endl;
+            }
+        }
+    }
+
 }
 
 int main()
@@ -251,13 +406,17 @@ int main()
 	
 	bool RunPerfts = false;
 
-	if(0)
+	if(1)
   {
-    const std::string fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-    CompareMiniMax_AlphaBeta(fen, 1);
-    CompareMiniMax_AlphaBeta(fen, 2);
-    CompareMiniMax_AlphaBeta(fen, 3);
-    CompareMiniMax_AlphaBeta(fen, 4);
+    //const std::string fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    const std::string fen("r1r2k2/6bQ/p2pp1p1/1pqP2P1/8/8/PPn5/1KBR3R b - - 0 1");
+      //const std::string fen("8/k4ppp/8/K4PPP/8/8/8/8 w - - 0 1");
+      //const std::string fen("8/8/8/8/ppp4k/8/PPP4K/8 b - - 0 1");
+    PlayGame(fen);
+    //CompareMiniMax_AlphaBeta(fen, 1);
+    //CompareMiniMax_AlphaBeta(fen, 2);
+    //CompareMiniMax_AlphaBeta(fen, 3);
+    //CompareMiniMax_AlphaBeta(fen, 4);
     //CompareMiniMax_AlphaBeta(fen, 5);
     //CompareMiniMax_AlphaBeta(fen, 6);
     //Bitboard& b = BitboardFromFen(fen);
@@ -274,15 +433,20 @@ int main()
 		// RunPerft(fen,  9, 1, 2439530234167);
 		// RunPerft(fen, 10, 1, 69352859712417);
   }
-  if(1)
+  if(0)
   {
-    //const std::string fen("2k58/8/8/4P3/8/8/4K3/8/ w - - 0 1");
+    //const std::string fen("2k5/4P3/4K3/8/8/8/8/8/8 w - - 0 1");
+    //const std::string fen("8/k7/2K5/1Q6/8/8/8/8 w - - 0 5");
+    const std::string fen("8/kQ6/2K5/8/8/8/8/8 b - - 0 5");
     
     //const std::string fen("3brrb1/2N4B/8/2p4Q/2p2k2/5P2/4P1KR/2N2RB1 w - - 0 1");
     //const std::string fen("8/5p1k/6pp/3p4/Rpp2n1P/5P2/PbP2r1P/3K4 w - - 1 33");
-    const std::string fen("4k3/5R2/4PpN1/8/8/4pPn1/5r2/4K3 b - - 0 1");
+    //const std::string fen("4k3/5R2/4PpN1/8/8/4pPn1/5r2/4K3 b - - 0 1");
+    //const std::string fen("6k1/1p3Rpp/p1pN4/2P1n3/1PB5/7P/1q4PK/8 w - - 0 1");
+    //const std::string fen("5K2/8/3p2k1/3P1R2/2P2p1P/2B2P2/8/8 w - - 0 1");
+    //const std::string fen("4r3/7q/nb2prRp/p2p3P/B1kP4/P7/1P2N1P1/1K3N2 w - - 2 2");
 
-    CompareMiniMax_AlphaBeta(fen, 5);
+    CompareMiniMax_AlphaBeta(fen, 1);
 
     
 	//RunPerft(fen, 1, 1, 20);
