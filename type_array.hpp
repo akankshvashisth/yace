@@ -9,11 +9,17 @@
 template< typename T, unsigned N >
 struct type_array
 {
+    type_array():msize(0){}
     const T& back() const { return data[msize-1]; }
 	        T& back()       { return data[msize-1]; }
-  void push_back( const T& m )
+    void push_back( const T& m )
 	{  
 		data[msize] = m; 
+		++msize; 
+		assert(msize < N);
+	}
+    void push_back()
+	{   
 		++msize; 
 		assert(msize < N);
 	}

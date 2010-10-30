@@ -44,6 +44,46 @@ namespace PieceType
     "all",
     "."
   };
+
+  static const std::string SPieceType_to_file_on_black[] =
+  {
+    "white",
+    "p",
+    "n",
+    "b",
+    "r",
+    "q",
+    "k",
+    "black",
+    "o",
+    "m",
+    "v",
+    "t",
+    "w",
+    "l",
+    "all",
+    "="
+  };
+
+  static const std::string SPieceType_to_file_on_white[] =
+  {
+    "white",
+    "P",
+    "N",
+    "B",
+    "R",
+    "Q",
+    "K",
+    "Black",
+    "O",
+    "M",
+    "V",
+    "T",
+    "W",
+    "L",
+    "all",
+    "+"
+  };
 }
 
 namespace Color
