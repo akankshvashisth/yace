@@ -386,7 +386,7 @@ int absVal(int i){ return i<0?-i:i; }
 
 void PlayGame(const std::string& fen)
 {
-    const std::string filename("gamefile_44.txt"); 
+    const std::string filename("gamefile_47.txt"); 
     Bitboard& b = BitboardFromFen(fen);
     b.zobrists.push_back( ZobristFromBitboard(b) );
     Show<ShowTypes::Console>::Op(b);
@@ -522,8 +522,13 @@ void PlayGame(const std::string& fen)
             double max_time = 5.0;//((n%2)==0) ? 5.0 : 0.25;
             type_array<PV, Constants::max_depth>* pvs = new type_array<PV, Constants::max_depth>();
             pvs->push_back();
-            while(totalTime < max_time && ((depth + absVal(val)) < Constants::MATE_VALUE))
+            int alpha = Constants::NEG_INF;
+            int beta = Constants::POS_INF;
+            const int AspirationWindow = 50;
+            bool forceCont = false;
+            while((forceCont)||(totalTime < max_time && ((depth + absVal(val)) < Constants::MATE_VALUE)))
             {
+                forceCont = false;
                 PV& prev_pv = (*pvs)[depth];
 
                 ++depth;
@@ -532,7 +537,8 @@ void PlayGame(const std::string& fen)
                 
                 ui64 nodesSeen = 0;
                 w.startTimer();
-                val = GetAlphaBetaScore(b, depth, nodesSeen, pv, prev_pv);  
+                val =  AlphaBeta(b,depth,alpha,beta,0,nodesSeen, &pv, &prev_pv);
+                //val = GetAlphaBetaScore(b, depth, nodesSeen, pv, prev_pv);  
                 w.stopTimer();
                 totalTime += w.getElapsedTime();
                 if(max_time - totalTime < w.getElapsedTime())
@@ -551,6 +557,19 @@ void PlayGame(const std::string& fen)
                 pv.Show();
                 std::cout << std::endl;
                 bestMove = pv.argmove[0];
+
+                if ((val <= alpha) || (val >= beta)) 
+                {
+                    Show<ShowTypes::Console>::Op("resetting");
+                    alpha = Constants::NEG_INF;
+                    beta =  Constants::POS_INF;
+                    pv.cmove = 0;
+                    --depth;
+                    forceCont = true;
+                    continue;
+                }
+                alpha = val - AspirationWindow;
+                beta  = val + AspirationWindow;
             }
             delete pvs;
             if(goOn)
@@ -567,7 +586,7 @@ void PlayGame(const std::string& fen)
                 std::cout << std::endl;
             }
         }
-
+/*
         bool right = false;
         while(!right)
         {
@@ -685,7 +704,7 @@ void PlayGame(const std::string& fen)
                 }
             }
 
-        }
+        }*/
     }
 
 }
@@ -705,8 +724,9 @@ int main()
 
 	if(1)
   {
+    const std::string fen("2k5/8/8/8/8/8/4R3/4K3 w - - 0 1");
     //const std::string fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-    const std::string fen("r2k3r/2n1q1b1/2Qp3p/8/p7/2PPN3/PP2PPPP/R3KB1R w KQ - 0 21");
+    //const std::string fen("r2k3r/2n1q1b1/2Qp3p/8/p7/2PPN3/PP2PPPP/R3KB1R w KQ - 0 21");
     //const std::string fen("r1r2k2/6bQ/p2pp1p1/1pqP2P1/8/8/PPn5/1KBR3R b - - 0 1");
       //const std::string fen("8/k4ppp/8/K4PPP/8/8/8/8 w - - 0 1");
       //const std::string fen("8/8/8/8/ppp4k/8/PPP4K/8 b - - 0 1");
