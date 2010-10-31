@@ -386,7 +386,7 @@ int absVal(int i){ return i<0?-i:i; }
 
 void PlayGame(const std::string& fen)
 {
-    const std::string filename("gamefile_47.txt"); 
+    const std::string filename("gamefile_48.txt"); 
     Bitboard& b = BitboardFromFen(fen);
     b.zobrists.push_back( ZobristFromBitboard(b) );
     Show<ShowTypes::Console>::Op(b);
@@ -519,7 +519,7 @@ void PlayGame(const std::string& fen)
             int depth = 0;
             move bestMove;
             double totalTime = 0;
-            double max_time = 5.0;//((n%2)==0) ? 5.0 : 0.25;
+            double max_time = 0.25;//((n%2)==0) ? 5.0 : 0.25;
             type_array<PV, Constants::max_depth>* pvs = new type_array<PV, Constants::max_depth>();
             pvs->push_back();
             int alpha = Constants::NEG_INF;
@@ -724,8 +724,8 @@ int main()
 
 	if(1)
   {
-    const std::string fen("2k5/8/8/8/8/8/4R3/4K3 w - - 0 1");
-    //const std::string fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    //const std::string fen("2k5/8/8/8/8/8/4R3/4K3 w - - 0 1");
+    const std::string fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     //const std::string fen("r2k3r/2n1q1b1/2Qp3p/8/p7/2PPN3/PP2PPPP/R3KB1R w KQ - 0 21");
     //const std::string fen("r1r2k2/6bQ/p2pp1p1/1pqP2P1/8/8/PPn5/1KBR3R b - - 0 1");
       //const std::string fen("8/k4ppp/8/K4PPP/8/8/8/8 w - - 0 1");
@@ -738,6 +738,7 @@ int main()
       //const std::string fen("3R4/1p2rppk/p1n4p/P7/2PR4/6KP/6P1/8 w - - 0 1");
     //const std::string fen("r1bqr1k1/1p3pp1/1pp4p/8/2P3n1/1Q1p4/PP1P1PPP/R1B1NK1R b - - 1 19");
     PlayGame(fen);
+    //RunZobTest(fen, 100);
     //CompareMiniMax_AlphaBeta(fen, 1);
     //CompareMiniMax_AlphaBeta(fen, 2);
     //CompareMiniMax_AlphaBeta(fen, 3);

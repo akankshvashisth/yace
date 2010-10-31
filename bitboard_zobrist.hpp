@@ -67,7 +67,7 @@ static void UpdateZobristFromMove( ui64& zob, move& m, Bitboard& b )
 {
     for(unsigned i=0; i<CastlingRights::Total; ++i)
     {
-        if( m.castling_before_move[i] )
+        if( b.history.back().castling_before_move[i] )
         {
             zob ^= Zobrist::castling_key[i]; //these will clear out all the castling keys
         }
@@ -81,9 +81,9 @@ static void UpdateZobristFromMove( ui64& zob, move& m, Bitboard& b )
         }
     }
 
-    if(m.epSq_before_move != Sq::none)
+    if(b.history.back().epSq_before_move != Sq::none)
     {
-        zob ^= Zobrist::ep_key[m.epSq_before_move];
+        zob ^= Zobrist::ep_key[b.history.back().epSq_before_move];
     }
 
     if(b.EpSquare() != Sq::none)
@@ -117,14 +117,14 @@ static void UpdateZobristFromMove( ui64& zob, move& m, Bitboard& b )
     case MoveType::ep:
         {
 
-            ui64 r3 = (lookup::single_bit_set[m.epSq_before_move] & Constants::rank_3);
-            ui64 r6 = (lookup::single_bit_set[m.epSq_before_move] & Constants::rank_6);
+            ui64 r3 = (lookup::single_bit_set[b.history.back().epSq_before_move] & Constants::rank_3);
+            ui64 r6 = (lookup::single_bit_set[b.history.back().epSq_before_move] & Constants::rank_6);
             bool rr = (r6||r3);
             assert(rr);
                 
             zob ^= Zobrist::zobrist[m.piece][m.to]; //put the pawn at the ep square.
 
-            if(lookup::single_bit_set[m.epSq_before_move] & Constants::rank_3)
+            if(lookup::single_bit_set[b.history.back().epSq_before_move] & Constants::rank_3)
             {
                 zob ^= Zobrist::zobrist[PieceType::wpawns][unsigned(m.to)+8]; //remove captured pawn.
             }
