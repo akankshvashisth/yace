@@ -40,6 +40,7 @@ public:
   type_array<move, Constants::max_game_length> moves;
   type_array<ui64, Constants::max_game_length>  zobrists;
   type_array<move, Constants::max_moves_per_position> moves_arr[Constants::max_depth];
+  type_array<move, 64> captures_arr[Constants::max_depth];
 public:
   Bitboard();
   bool operator==( const Bitboard& o ) const;

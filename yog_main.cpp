@@ -145,14 +145,74 @@ struct PV
     }
 };
 
+
+int Quies(Bitboard& b, int depth, int alpha, int beta, int current_depth, ui64& nodesSeen)
+{
+    if(depth <= 0)
+    {
+        ++nodesSeen;
+        return evaluate(b);
+    }
+
+    int stand_pat = evaluate(b);
+    if( stand_pat >= beta )
+    {
+        ++nodesSeen;
+        return beta;
+    }
+    if( alpha < stand_pat )
+    {
+        ++nodesSeen;
+        alpha = stand_pat;
+    }
+
+
+  int val = 0;
+  bool hasLegalMoves = false;
+  
+  GeneratePseudoLegalCaptureMoves(b, b.captures_arr[current_depth]);
+  int n_moves = b.captures_arr[current_depth].size();
+  
+  for (int i = 0; i < n_moves; i++) 
+  {
+      move& m =b.captures_arr[current_depth][i];
+      if(m.type == MoveType::capture || m.special == MoveType::promotion)
+      {
+          bool isMoveLegal = b.MakeMove(m);
+          if(isMoveLegal)
+          {
+              hasLegalMoves = true;
+              b.zobrists.push_back(b.zobrists.back());
+              UpdateZobristFromMove(b.zobrists.back(), m, b);
+              val = -Quies(b, depth-1, -beta, -alpha, current_depth+1, nodesSeen);
+              if( val >= beta )
+              {
+                b.zobrists.pop_back();
+                b.UnmakeMove();
+                return beta;
+              }
+              if( val > alpha )
+              {
+                alpha = val;
+              }
+              b.zobrists.pop_back();
+          }
+          b.UnmakeMove();
+      }
+  }
+
+  return alpha;
+}
+
 int AlphaBeta(Bitboard& b, int depth, int alpha, int beta, int current_depth, ui64& nodesSeen, PV* pv, PV* prev_PV)
 {
   PV pv_local;
   if(depth <= 0)
   {
       pv->cmove = 0;
-      ++nodesSeen; 
-      return evaluate(b); 
+      //++nodesSeen; 
+      //return evaluate(b);
+      return Quies(b, 10, alpha, beta, 0, nodesSeen); 
   }
 
   int val = 0;
@@ -326,7 +386,7 @@ int absVal(int i){ return i<0?-i:i; }
 
 void PlayGame(const std::string& fen)
 {
-    const std::string filename("gamefile_19.txt"); 
+    const std::string filename("gamefile_44.txt"); 
     Bitboard& b = BitboardFromFen(fen);
     b.zobrists.push_back( ZobristFromBitboard(b) );
     Show<ShowTypes::Console>::Op(b);
@@ -334,6 +394,124 @@ void PlayGame(const std::string& fen)
     bool goOn = true;
     for(int n=0; n<300; ++n)
     {
+        //bool right = false;
+        //while(!right)
+        //{
+        //    bool found = false;
+        //    move mp;
+        //    std::string s, sf, st;
+        //    std::cout << "Input Move: " ;
+        //    std::cin >> s;
+        //    sf.clear();
+        //    st.clear();
+        //    sf += s[0];
+        //    sf += s[1];
+        //    st += s[2];
+        //    st += s[3];
+
+        //    Sq::ESq f,t;
+
+        //    for(unsigned i=0; i<64; ++i)
+        //    {
+        //        if(sf == Sq::SSq[i])
+        //        {
+        //            f = (Sq::ESq)i;
+        //        }
+        //        if(st == Sq::SSq[i])
+        //        {
+        //            t = (Sq::ESq)i;
+        //        }
+        //    }
+
+        //    type_array<move, 192> mvs;
+        //    GeneratePseudoLegalMoves(b, mvs);
+
+        //    if(s == std::string("o-o"))
+        //    {
+        //        for(int i=0; i<mvs.size(); ++i)
+        //        {
+        //            if(mvs[i].special == MoveType::castle_kingside)
+        //            {
+        //                mp = mvs[i];
+        //                found = true;
+        //                break;
+        //            }
+        //        }
+        //    }
+        //    else if( s == std::string("ooo"))
+        //    {
+        //        for(int i=0; i<mvs.size(); ++i)
+        //        {
+        //            if(mvs[i].special == MoveType::castle_queenside)
+        //            {
+        //                mp = mvs[i];
+        //                found = true;
+        //                break;
+        //            }
+        //        }
+        //    }
+        //    else if( s.length() > 4 )
+        //    {
+        //        PieceType::EPieceType p = PieceType::wqueens;
+        //        switch(s[4])
+        //        {
+        //        case 'q':
+        //            p = PieceType::wqueens;
+        //            break;
+        //        case 'r':
+        //            p = PieceType::wrooks;
+        //            break;
+        //        case 'b':
+        //            p = PieceType::wbishops;
+        //            break;
+        //        case 'n':
+        //            p = PieceType::wknights;
+        //            break;
+        //        }
+        //        for(int i=0; i<mvs.size(); ++i)
+        //        {
+        //            if((mvs[i].from == f) && (mvs[i].to == t))
+        //            {
+        //                if(p == mvs[i].promoted)
+        //                {
+        //                    mp = mvs[i];
+        //                    found = true;
+        //                    break;
+        //                }
+        //            }
+        //        }                
+        //    }
+        //    else
+        //    {
+        //        for(int i=0; i<mvs.size(); ++i)
+        //        {
+        //            if((mvs[i].from == f) && (mvs[i].to == t))
+        //            {
+        //                mp = mvs[i];
+        //                found = true;
+        //                break;
+        //            }
+        //        }  
+        //    }
+
+        //    if(found)
+        //    {
+        //        if(b.MakeMove(mp))
+        //        {
+        //           b.zobrists.push_back(b.zobrists.back());
+        //           UpdateZobristFromMove(b.zobrists.back(), mp, b);
+        //           Show<ShowTypes::Console>::Op(b);
+        //           Show<ShowTypes::File>::Op(filename, b);
+        //           right = true;
+        //        }
+        //        else
+        //        {
+        //            std::cout << "Invalid move" << std::endl;
+        //            b.UnmakeMove();
+        //        }
+        //    }
+
+        //}
         if(goOn)
         {
             aks::time::HighResStopWatch w;
@@ -341,7 +519,7 @@ void PlayGame(const std::string& fen)
             int depth = 0;
             move bestMove;
             double totalTime = 0;
-            double max_time = 10.0;//((n%2)==0) ? 5.0 : 0.25;
+            double max_time = 5.0;//((n%2)==0) ? 5.0 : 0.25;
             type_array<PV, Constants::max_depth>* pvs = new type_array<PV, Constants::max_depth>();
             pvs->push_back();
             while(totalTime < max_time && ((depth + absVal(val)) < Constants::MATE_VALUE))
@@ -389,6 +567,125 @@ void PlayGame(const std::string& fen)
                 std::cout << std::endl;
             }
         }
+
+        bool right = false;
+        while(!right)
+        {
+            bool found = false;
+            move mp;
+            std::string s, sf, st;
+            std::cout << "Input Move: " ;
+            std::cin >> s;
+            sf.clear();
+            st.clear();
+            sf += s[0];
+            sf += s[1];
+            st += s[2];
+            st += s[3];
+
+            Sq::ESq f,t;
+
+            for(unsigned i=0; i<64; ++i)
+            {
+                if(sf == Sq::SSq[i])
+                {
+                    f = (Sq::ESq)i;
+                }
+                if(st == Sq::SSq[i])
+                {
+                    t = (Sq::ESq)i;
+                }
+            }
+
+            type_array<move, 192> mvs;
+            GeneratePseudoLegalMoves(b, mvs);
+
+            if(s == std::string("o-o"))
+            {
+                for(int i=0; i<mvs.size(); ++i)
+                {
+                    if(mvs[i].special == MoveType::castle_kingside)
+                    {
+                        mp = mvs[i];
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            else if( s == std::string("ooo"))
+            {
+                for(int i=0; i<mvs.size(); ++i)
+                {
+                    if(mvs[i].special == MoveType::castle_queenside)
+                    {
+                        mp = mvs[i];
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            else if( s.length() > 4 )
+            {
+                PieceType::EPieceType p = PieceType::wqueens;
+                switch(s[4])
+                {
+                case 'q':
+                    p = PieceType::bqueens;
+                    break;
+                case 'r':
+                    p = PieceType::brooks;
+                    break;
+                case 'b':
+                    p = PieceType::bbishops;
+                    break;
+                case 'n':
+                    p = PieceType::bknights;
+                    break;
+                }
+                for(int i=0; i<mvs.size(); ++i)
+                {
+                    if((mvs[i].from == f) && (mvs[i].to == t))
+                    {
+                        if(p == mvs[i].promoted)
+                        {
+                            mp = mvs[i];
+                            found = true;
+                            break;
+                        }
+                    }
+                }                
+            }
+            else
+            {
+                for(int i=0; i<mvs.size(); ++i)
+                {
+                    if((mvs[i].from == f) && (mvs[i].to == t))
+                    {
+                        mp = mvs[i];
+                        found = true;
+                        break;
+                    }
+                }  
+            }
+
+            if(found)
+            {
+                if(b.MakeMove(mp))
+                {
+                   b.zobrists.push_back(b.zobrists.back());
+                   UpdateZobristFromMove(b.zobrists.back(), mp, b);
+                   Show<ShowTypes::Console>::Op(b);
+                   Show<ShowTypes::File>::Op(filename, b);
+                   right = true;
+                }
+                else
+                {
+                    std::cout << "Invalid move" << std::endl;
+                    b.UnmakeMove();
+                }
+            }
+
+        }
     }
 
 }
@@ -409,9 +706,17 @@ int main()
 	if(1)
   {
     //const std::string fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-    const std::string fen("r1r2k2/6bQ/p2pp1p1/1pqP2P1/8/8/PPn5/1KBR3R b - - 0 1");
+    const std::string fen("r2k3r/2n1q1b1/2Qp3p/8/p7/2PPN3/PP2PPPP/R3KB1R w KQ - 0 21");
+    //const std::string fen("r1r2k2/6bQ/p2pp1p1/1pqP2P1/8/8/PPn5/1KBR3R b - - 0 1");
       //const std::string fen("8/k4ppp/8/K4PPP/8/8/8/8 w - - 0 1");
       //const std::string fen("8/8/8/8/ppp4k/8/PPP4K/8 b - - 0 1");
+      //const std::string fen("1br1r3/3B4/5Bb1/3k3p/1PN5/1P1P1K2/3R2N1/7Q w - - 0 1");
+      //const std::string fen("r1bqkb1r/ppp2pp1/2np3p/1B6/4n3/5N2/PPPP1PPP/RNBQ1RK1 w kq – 0 1");
+      //const std::string fen("5B2/6p1/8/6pp/7k/5P2/q5PK/8 w - - 0 1");
+      //const std::string fen("2r3k1/1b2p1b1/p5p1/1p2P1N1/5PQ1/1P6/q1P4P/2KR4 w - - 0 1");
+      //const std::string fen("5K2/8/3p2k1/3P1R2/2P2p1P/2B2P2/8/8 w - - 0 1");
+      //const std::string fen("3R4/1p2rppk/p1n4p/P7/2PR4/6KP/6P1/8 w - - 0 1");
+    //const std::string fen("r1bqr1k1/1p3pp1/1pp4p/8/2P3n1/1Q1p4/PP1P1PPP/R1B1NK1R b - - 1 19");
     PlayGame(fen);
     //CompareMiniMax_AlphaBeta(fen, 1);
     //CompareMiniMax_AlphaBeta(fen, 2);
@@ -437,7 +742,8 @@ int main()
   {
     //const std::string fen("2k5/4P3/4K3/8/8/8/8/8/8 w - - 0 1");
     //const std::string fen("8/k7/2K5/1Q6/8/8/8/8 w - - 0 5");
-    const std::string fen("8/kQ6/2K5/8/8/8/8/8 b - - 0 5");
+    //const std::string fen("8/kQ6/2K5/8/8/8/8/8 b - - 0 5");
+    const std::string fen("1br1r3/3B4/5Bb1/3k3p/1PN5/1P1P1K2/3R2N1/7Q w - - 0 1");
     
     //const std::string fen("3brrb1/2N4B/8/2p4Q/2p2k2/5P2/4P1KR/2N2RB1 w - - 0 1");
     //const std::string fen("8/5p1k/6pp/3p4/Rpp2n1P/5P2/PbP2r1P/3K4 w - - 1 33");
