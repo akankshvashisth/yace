@@ -712,9 +712,9 @@ void PlayGame(const std::string& fen)
 int main()
 {
   //Show<ShowTypes::Console>::Op((unsigned)sizeof(Bitboard));
-  //Show<ShowTypes::Console>::Op((unsigned)sizeof(move));
+  Show<ShowTypes::Console>::Op((unsigned)sizeof(move));
   //Show<ShowTypes::Console>::Op((unsigned)sizeof(ui64));
-  //Show<ShowTypes::Console>::Op((unsigned)sizeof(move_packed));
+  Show<ShowTypes::Console>::Op((unsigned)sizeof(move_packed));
   //Show<ShowTypes::Console>::Op((unsigned)sizeof(TT_Entry));
   //Show<ShowTypes::Console>::Op((unsigned)sizeof(TT_Big_Entry));
 
@@ -722,7 +722,7 @@ int main()
 	
 	bool RunPerfts = false;
 
-	if(1)
+	if(0)
   {
     //const std::string fen("2k5/8/8/8/8/8/4R3/4K3 w - - 0 1");
     const std::string fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
