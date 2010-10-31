@@ -38,6 +38,7 @@ public:
   bool isWhitesTurn;
  
   type_array<move, Constants::max_game_length> moves;
+  type_array<history_elem, Constants::max_game_length> history;
   type_array<ui64, Constants::max_game_length>  zobrists;
   type_array<move, Constants::max_moves_per_position> moves_arr[Constants::max_depth];
   type_array<move, 64> captures_arr[Constants::max_depth];
@@ -136,6 +137,7 @@ static Bitboard gBitboard;
 	}
 	bool wsame = isWhitesTurn == o.isWhitesTurn;
 	bool ssame = moves.size() == o.moves.size();
+    bool hsame = history.size() == o.history.size();
 	bool msame = true;
 	if(ssame)
 	{
@@ -144,7 +146,7 @@ static Bitboard gBitboard;
 			msame = (msame && ( moves[i] == o.moves[i] ));
 		}
 	}
-	return piecesSame && emptySame && occSame && hfc && fmc && eps && csame && wsame && ssame && msame;
+	return piecesSame && emptySame && occSame && hfc && fmc && eps && csame && wsame && ssame && msame && hsame;
   }
 
   bool Bitboard::operator!=(const Bitboard& o ) const
@@ -402,12 +404,13 @@ static Bitboard gBitboard;
 
   bool Bitboard::MakeMove( move& m )
   {
-	m.fifty_count_before_move = halfMoveClock;
-	m.castling_before_move[0] = castling[0];
-	m.castling_before_move[1] = castling[1];
-	m.castling_before_move[2] = castling[2];
-	m.castling_before_move[3] = castling[3];
-	m.epSq_before_move = epSquare;
+    history_elem he;
+	he.fifty_count_before_move = halfMoveClock;
+	he.castling_before_move[0] = castling[0];
+	he.castling_before_move[1] = castling[1];
+	he.castling_before_move[2] = castling[2];
+	he.castling_before_move[3] = castling[3];
+	he.epSq_before_move = epSquare;
 
 	epSquare = Sq::none;
     
@@ -431,6 +434,7 @@ static Bitboard gBitboard;
 		    }
 			halfMoveClock = 0;
 			moves.push_back(m);
+            history.push_back(he);
         break;
       }
     case MoveType::promotion:
@@ -445,6 +449,7 @@ static Bitboard gBitboard;
         }
 		halfMoveClock = 0;
 		moves.push_back(m);
+        history.push_back(he);
         break;
       }
     case MoveType::castle_kingside:
@@ -474,6 +479,7 @@ static Bitboard gBitboard;
 
 			if(isLegal) UpdateAll();
 			moves.push_back(m);
+            history.push_back(he);
 		  return isLegal;
 	  }
     case MoveType::castle_queenside:
@@ -503,6 +509,7 @@ static Bitboard gBitboard;
 		  isWhitesTurn = !isWhitesTurn;
 		  if(isLegal) UpdateAll();
 		  moves.push_back(m);
+          history.push_back(he);
 		  return isLegal;
 	  }
     default:
@@ -513,6 +520,7 @@ static Bitboard gBitboard;
             MakeCaptureMove_NoUpdate(m.piece, m.captured, m.from, m.to);
 			halfMoveClock = 0;
 			moves.push_back(m);
+            history.push_back(he);
             break;
         default:
             MakeNormalMove_NoUpdate(m.piece, m.from, m.to);
@@ -525,6 +533,7 @@ static Bitboard gBitboard;
 			    epSquare = Sq::ESq((unsigned)m.from-8);
 		    }
 			moves.push_back(m);
+            history.push_back(he);
         }
       }
     }
@@ -576,13 +585,14 @@ static Bitboard gBitboard;
   void Bitboard::UnmakeMove()
   {
 	  move& m = moves.back();
+      history_elem& he = history.back();
 	  
-	  halfMoveClock = m.fifty_count_before_move;
-	  epSquare      = m.epSq_before_move;
-	  castling[0]   = m.castling_before_move[0];
-	  castling[1]   = m.castling_before_move[1];
-	  castling[2]   = m.castling_before_move[2];
-	  castling[3]   = m.castling_before_move[3];
+	  halfMoveClock = he.fifty_count_before_move;
+	  epSquare      = he.epSq_before_move;
+	  castling[0]   = he.castling_before_move[0];
+	  castling[1]   = he.castling_before_move[1];
+	  castling[2]   = he.castling_before_move[2];
+	  castling[3]   = he.castling_before_move[3];
 
 	  switch(m.special)
 	  {
@@ -676,6 +686,7 @@ static Bitboard gBitboard;
 	  }
 	  isWhitesTurn = !isWhitesTurn;
 	  moves.pop_back();
+      history.pop_back();
 	  UpdateAll();
   }
 
