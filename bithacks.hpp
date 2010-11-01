@@ -301,6 +301,7 @@ inline unsigned bitScanForward_DeBruijn(ui64 bb)
 #pragma warning( pop )
 #endif
 
+#ifdef DO_USE_INTRINSICS
 inline unsigned bitScanForward_02(ui64 bb)
 {
    unsigned long idx = 0;
@@ -316,6 +317,7 @@ inline unsigned bitScanReverse_02(ui64 bb)
    _BitScanReverse64(&idx, bb);
    return (unsigned)idx;
 }
+#endif
 
 /**
  * bitScanReverse

@@ -4,6 +4,8 @@
 #include <cassert>
 #include "utility.hpp"
 
+#define DO_USE_INTRINSICS
+
 #define DO_EVERYTHING_SAFELY
 
 #ifdef DO_EVERYTHING_SAFELY
