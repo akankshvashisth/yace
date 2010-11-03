@@ -230,7 +230,7 @@ int AlphaBeta(Bitboard& b, int depth, int alpha, int beta, int current_depth, ui
   {
       pv->cmove = 0;
       //++nodesSeen; 
-      //int eval;// = evaluate(b);
+      //int eval = evaluate(b);
       //if(eval > Constants::MATE_VALUE || eval < -Constants::MATE_VALUE)
       //{
       //    //Show<ShowTypes::Console>::Op("depth0");
@@ -447,7 +447,7 @@ int absVal(int i){ return i<0?-i:i; }
 
 void PlayGame(const std::string& fen)
 {
-    const std::string filename("gamefile_56.txt"); 
+    const std::string filename("gamefile_60.txt"); 
     Bitboard& b = BitboardFromFen(fen);
     b.zobrists.push_back( ZobristFromBitboard(b) );
     Show<ShowTypes::Console>::Op(b);
@@ -772,14 +772,17 @@ void PlayGame(const std::string& fen)
 
 int main()
 {
-  size_t tablesizeMB = 512;
+  size_t tablesizeMB = 2048;
   gTT.CreateTable(tablesizeMB*1024);
-  //Show<ShowTypes::Console>::Op((unsigned)sizeof(Bitboard));
+  Show<ShowTypes::Console>::Op((unsigned)sizeof(Bitboard));
   Show<ShowTypes::Console>::Op((unsigned)sizeof(move));
   Show<ShowTypes::Console>::Op((unsigned)sizeof(TT_E));
-  //Show<ShowTypes::Console>::Op((unsigned)sizeof(move_packed));
+  Show<ShowTypes::Console>::Op((unsigned)sizeof(move_packed));
   //Show<ShowTypes::Console>::Op((unsigned)sizeof(TT_Entry));
-  //Show<ShowTypes::Console>::Op((unsigned)sizeof(TT_Big_Entry));
+ std::cout << ((gTT.size));
+
+  char a;
+  //std::cin >> a; 
 
 	init_all();
 	
@@ -795,8 +798,9 @@ int main()
       //const std::string fen("8/k4ppp/8/K4PPP/8/8/8/8 w - - 0 1");
      // const std::string fen("8/8/8/8/ppp4k/8/PPP4K/8 b - - 0 1");
       //const std::string fen("1br1r3/3B4/5Bb1/3k3p/1PN5/1P1P1K2/3R2N1/7Q w - - 0 1");
-      //const std::string fen("r1bqkb1r/ppp2pp1/2np3p/1B6/4n3/5N2/PPPP1PPP/RNBQ1RK1 w kq – 0 1");
+     // const std::string fen("r1bqkb1r/ppp2pp1/2np3p/1B6/4n3/5N2/PPPP1PPP/RNBQ1RK1 w kq – 0 1");
       //const std::string fen("5B2/6p1/8/6pp/7k/5P2/q5PK/8 w - - 0 1");
+     // const std::string fen("4r3/7q/nb2prRp/pk1p3P/3P4/P7/1P2N1P1/1K1B1N2 w - - 0 1");
       //const std::string fen("2r3k1/1b2p1b1/p5p1/1p2P1N1/5PQ1/1P6/q1P4P/2KR4 w - - 0 1");
       //const std::string fen("5K2/8/3p2k1/3P1R2/2P2p1P/2B2P2/8/8 w - - 0 1");
       //const std::string fen("3R4/1p2rppk/p1n4p/P7/2PR4/6KP/6P1/8 w - - 0 1");
