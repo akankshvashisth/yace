@@ -28,17 +28,17 @@ namespace TTProveReturnType
   };
 }
 
-struct TT_Entry
+struct TT_E
 {
-  //TT_E():zob(0), best_mv(), eval(0), depth(0), best_mv_type(unsigned char(BestMoveType::none)){}
+  TT_E():zob(0), best_mv(), eval(0), depth(0), best_mv_type(unsigned char(BestMoveType::none)){}
   ui64 zob;
-  move best_mv;
+  move_packed best_mv;
   short eval;
   unsigned char depth;
   unsigned char best_mv_type;
 };
 
-struct TT_E
+struct TT_Entry
 {
   move best_mv;
   ui64 zob;
@@ -134,7 +134,7 @@ struct TT
           break;
         }
       }
-      mv = /*MoveFromMovePacked*/(tt_entry.best_mv);
+      mv = MoveFromMovePacked(tt_entry.best_mv);
       return TTProveReturnType::best_move;
     }
     return TTProveReturnType::miss;
