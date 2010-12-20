@@ -25,19 +25,10 @@ struct history_elem
 
 bool operator==( const move& o, const move& a )
 {
-	return(a.piece == o.piece) &&
-		    (a.captured == o.captured) &&
-		    (a.promoted == o.promoted) &&
-		    (a.from == o.from) &&
-		    (a.to == o.to) &&
-		    //(a.epSq_before_move == o.epSq_before_move) &&
-		    (a.type == o.type) &&
-		    (a.special == o.special); //&&
-		    //(a.fifty_count_before_move == o.fifty_count_before_move) &&
-		    //(a.castling_before_move[0] == o.castling_before_move[0]) &&
-		    //(a.castling_before_move[1] == o.castling_before_move[1]) &&
-		    //(a.castling_before_move[2] == o.castling_before_move[2]) &&
-		    //(a.castling_before_move[3] == o.castling_before_move[3]);
+    if((a.piece != o.piece) || (a.from != o.from) || (a.to != a.to)) return false;
+    else if(a.special == MoveType::promotion && a.promoted != o.promoted) return false;
+    else if(a.type == MoveType::capture && a.captured != o.captured) return false;
+    else return true;
 }
 
 /////////////////////////////////
