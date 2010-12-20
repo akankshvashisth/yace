@@ -380,12 +380,16 @@ static type_array<move, Constants::max_moves_per_position>& GeneratePseudoLegalM
 			if( bb.WhiteCanCastleKingSide() && bb.IsCastleKingsideLegal() ) 
 			{
 				m.special = MoveType::castle_kingside;
+                m.from = Sq::e1;
+                m.to = Sq::g1;
 				mvs.push_back(m);
 				m.special = MoveType::s_none;
 			}
 			if( bb.WhiteCanCastleQueenSide() && bb.IsCastleQueensideLegal() )
 			{
 				m.special = MoveType::castle_queenside;
+                m.from = Sq::e1;
+                m.to = Sq::c1;
 				mvs.push_back(m);
 			}
 		}
@@ -394,12 +398,16 @@ static type_array<move, Constants::max_moves_per_position>& GeneratePseudoLegalM
 			if( bb.BlackCanCastleKingSide() && bb.IsCastleKingsideLegal() ) 
 			{
 				m.special = MoveType::castle_kingside;
+                m.from = Sq::e8;
+                m.to = Sq::g8;
 				mvs.push_back(m);
 				m.special = MoveType::s_none;
 			}
 			if( bb.BlackCanCastleQueenSide() && bb.IsCastleQueensideLegal() )
 			{
 				m.special = MoveType::castle_queenside;
+                m.from = Sq::e8;
+                m.to = Sq::c8;
 				mvs.push_back(m);
 			}
 		}
