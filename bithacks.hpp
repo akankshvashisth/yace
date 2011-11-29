@@ -329,10 +329,10 @@ inline unsigned bitScanReverse_02(ui64 bb)
 unsigned bitScanReverse_01(ui64 bb)
 {
    assert(bb!=0);
-   union 
+   union
    {
       double d;
-      struct 
+      struct
 	  {
          unsigned int mantissal : 32;
          unsigned int mantissah : 20;
@@ -350,7 +350,7 @@ unsigned bitScanReverse_01(ui64 bb)
  * @param x any bitboard
  * @return bitboard x flipped vertically
  */
-inline ui64 flipVertical_01(ui64 x) 
+inline ui64 flipVertical_01(ui64 x)
 {
    const ui64 k1 = ui64(0x00FF00FF00FF00FF);
    const ui64 k2 = ui64(0x0000FFFF0000FFFF);
@@ -366,7 +366,7 @@ inline ui64 flipVertical_01(ui64 x)
  * @param x any bitboard
  * @return bitboard x flipped vertically
  */
-inline ui64 flipVertical_02(ui64 x) 
+inline ui64 flipVertical_02(ui64 x)
 {
    return _byteswap_uint64(x);
 }

@@ -4,12 +4,12 @@
 #include <cassert>
 #include "utility.hpp"
 
-#define DO_USE_INTRINSICS
+//#define DO_USE_INTRINSICS
 
 #define DO_EVERYTHING_SAFELY
 
 #ifdef DO_EVERYTHING_SAFELY
-#define DO_SAFE(p)  (p) 
+#define DO_SAFE(p)  (p)
 #define IS_TRUE(p)  (IsTrue(p))
 #define IS_FALSE(p) (IsFalse(p))
 #else

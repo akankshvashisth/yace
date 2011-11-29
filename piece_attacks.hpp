@@ -9,7 +9,7 @@
 
 
 #ifdef DO_USE_INTRINSICS
-ui64 getForwardRayAttacks(ui64 occupied, Dir::EDir dir8, unsigned long square) 
+ui64 getForwardRayAttacks(ui64 occupied, Dir::EDir dir8, unsigned long square)
 {
    ui64 attacks    = lookup::direction_attacks[dir8][square];
    ui64 blocker    =  attacks & occupied;
@@ -26,8 +26,8 @@ ui64 getBackwardRayAttacks(ui64 occupied, Dir::EDir dir8, unsigned long square)
 }
 #endif
 
- 
-inline ui64 getPositiveRayAttacks(const ui64& occupied, const Dir::EDir& dir8, Sq::ESq square) 
+
+inline ui64 getPositiveRayAttacks(const ui64& occupied, const Dir::EDir& dir8, Sq::ESq square)
 {
    ui64 attacks = lookup::direction_attacks[dir8][square];
    ui64 blocker = attacks & occupied;
@@ -38,7 +38,7 @@ inline ui64 getPositiveRayAttacks(const ui64& occupied, const Dir::EDir& dir8, S
    return attacks;
 }
 
-inline ui64 getNegativeRayAttacks(const ui64& occupied, const Dir::EDir& dir8, Sq::ESq square) 
+inline ui64 getNegativeRayAttacks(const ui64& occupied, const Dir::EDir& dir8, Sq::ESq square)
 {
 //	Show<ShowTypes::Console>::Op(occupied);
    ui64 attacks = lookup::direction_attacks[dir8][square];
@@ -51,7 +51,7 @@ inline ui64 getNegativeRayAttacks(const ui64& occupied, const Dir::EDir& dir8, S
    return attacks;
 }
 
-inline ui64 GetFrontRayAttacks(const ui64& occupied, const Dir::EDir& dir8, Sq::ESq square) 
+inline ui64 GetFrontRayAttacks(const ui64& occupied, const Dir::EDir& dir8, Sq::ESq square)
 {
 #ifdef DO_USE_INTRINSICS
 	return getForwardRayAttacks(occupied, dir8, (unsigned long)square);
@@ -60,7 +60,7 @@ inline ui64 GetFrontRayAttacks(const ui64& occupied, const Dir::EDir& dir8, Sq::
 #endif
 }
 
-inline ui64 GetBackRayAttacks(const ui64& occupied, const Dir::EDir& dir8, Sq::ESq square) 
+inline ui64 GetBackRayAttacks(const ui64& occupied, const Dir::EDir& dir8, Sq::ESq square)
 {
 #ifdef DO_USE_INTRINSICS
 	return getBackwardRayAttacks(occupied, dir8, (unsigned long)square);
