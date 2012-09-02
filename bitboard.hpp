@@ -2,6 +2,7 @@
 #ifndef __bitboard_hpp
 #define __bitboard_hpp
 
+#include <string>
 #include "constants.hpp"
 #include "evaluation_constants.hpp"
 #include "defines.hpp"
